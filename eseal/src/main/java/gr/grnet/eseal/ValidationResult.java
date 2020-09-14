@@ -11,7 +11,7 @@ package gr.grnet.eseal;
  * </p>
  *
  * <p>
- *     A {@link #TOTAL_PASS} response indicates that the signature has passed verification and it complies with the signature validation policy.
+ *     A {@link #TOTAL_PASSED} response indicates that the signature has passed verification and it complies with the signature validation policy.
  * </p>
  *
  * <p>
@@ -22,11 +22,16 @@ package gr.grnet.eseal;
  *      An {@link #INDETERMINATE} validation response indicates that the format and digital signature verifications have not failed
  *      but there is an insufficient information to determine if the electronic signature is valid.
  * </p>
+ *
+ *  * <p>
+ *      An {@link #NO_SIGNATURE} validation response indicates that the document contained no signatures
+ * </p>
  */
 public enum ValidationResult {
-    TOTAL_PASS,
+    TOTAL_PASSED,
     TOTAL_FAIL,
-    INDETERMINATE;
+    INDETERMINATE,
+    NO_SIGNATURE;
 
     private ValidationResult() {
     }
