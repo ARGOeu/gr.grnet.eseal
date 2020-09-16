@@ -1,6 +1,14 @@
 package gr.grnet.eseal;
 
 import eu.europa.esig.dss.model.FileDocument;
+import eu.europa.esig.dss.pades.validation.PDFDocumentValidator;
+import eu.europa.esig.dss.service.crl.OnlineCRLSource;
+import eu.europa.esig.dss.service.http.commons.CommonsDataLoader;
+import eu.europa.esig.dss.service.ocsp.OnlineOCSPSource;
+import eu.europa.esig.dss.validation.CertificateVerifier;
+import eu.europa.esig.dss.validation.CommonCertificateVerifier;
+import eu.europa.esig.dss.validation.reports.Reports;
+
 import java.io.File;
 
 /**
@@ -32,4 +40,57 @@ public class PDFValidator {
     public FileDocument getPdfDocument() {
         return this.pdfDocument;
     }
+
+    /**
+     * Performs the validation process with the given trust source
+     * @param validationLevel the level of validation severity
+     * @param x509CertificateTrustSource the trust source that will be used to validate the document
+     * @return ValidationReport that contains information regarding the validation process
+     */
+    public ValidationReport validate(ValidationLevel validationLevel, X509CertificateTrustSource x509CertificateTrustSource) {
+
+        // build the certificate verifier for the pdf validator
+        CertificateVerifier cv =  new CommonCertificateVerifier();
+        CommonsDataLoader commonsDataLoader = new CommonsDataLoader();
+        cv.setCrlSource(new OnlineCRLSource());
+        cv.setOcspSource(new OnlineOCSPSource());
+        cv.setDataLoader(commonsDataLoader);
+        cv.addTrustedCertSources(x509CertificateTrustSource.getCommonTrustedCertificateSource());
+
+        // initialize the dss validator
+        PDFDocumentValidator dssValidator = new PDFDocumentValidator(this.pdfDocument);
+        dssValidator.setValidationLevel(determineLevel(validationLevel));
+        dssValidator.setCertificateVerifier(cv);
+
+        Reports r = dssValidator.validateDocument();
+
+        return new ValidationReport(r);
+    }
+
+    /**
+     * Maps the library's validation level to the proper dss one
+     * @param validationLevel validation level to be mapped
+     * @return eu.europa.esig.dss.validation.executor.ValidationLevel dss validation level
+     */
+    public eu.europa.esig.dss.validation.executor.ValidationLevel determineLevel(ValidationLevel validationLevel) {
+
+        eu.europa.esig.dss.validation.executor.ValidationLevel vl  = eu.europa.esig.dss.validation.executor.ValidationLevel.BASIC_SIGNATURES;
+
+        switch ( validationLevel) {
+            case BASIC_SIGNATURES:
+               return vl;
+            case TIMESTAMPS:
+                vl = eu.europa.esig.dss.validation.executor.ValidationLevel.TIMESTAMPS;
+                return vl;
+            case LONG_TERM_DATA:
+                vl = eu.europa.esig.dss.validation.executor.ValidationLevel.LONG_TERM_DATA;
+                return vl;
+            case ARCHIVAL_DATA:
+                vl = eu.europa.esig.dss.validation.executor.ValidationLevel.ARCHIVAL_DATA;
+                return vl;
+        }
+
+        return vl;
+    }
+
 }
