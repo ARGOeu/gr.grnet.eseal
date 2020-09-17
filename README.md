@@ -107,6 +107,39 @@ public class Example3 {
         }
     }
 }
+```
 
+### PDF Validation using a List of Trusted Lists
+
+```java
+import gr.grnet.eseal.PDFValidator;
+import gr.grnet.eseal.LOTLTrustSource;
+import gr.grnet.eseal.ValidationLevel;
+import gr.grnet.eseal.ValidationReport;
+import gr.grnet.eseal.LOTLURL;
+public class Example4 {
+
+    public static void main( String[] args ) {
+
+        // Initialise the pdf validator from a file source
+        PDFValidator pdf = new PDFValidator("/path/to/pdf");
+
+
+        try {
+            
+            // Initialise the list of trusted list source from the european lotl
+            LOTLTrustSource lotlTrustSource = new LOTLTrustSource(LOTLURL.EUROPE);
+
+            // Validate the document based on the provided trust source(list of trusted lists) and the validation severity
+            ValidationReport r =  pdf.validate(ValidationLevel.BASIC_SIGNATURES, lotlTrustSource);
+
+            // get the result of the validation process
+            System.out.println(r.getValidationResult());
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+}
 ```
 

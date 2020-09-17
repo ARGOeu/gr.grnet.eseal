@@ -101,6 +101,37 @@ public class PDFValidator {
     /**
      * Performs the validation process with the given trust source
      * @param validationLevel the level of validation severity
+     * @param lotlTrustSource the trust source that will be used to validate the document
+     * @return ValidationReport that contains information regarding the validation process
+     */
+    public ValidationReport validate(ValidationLevel validationLevel, LOTLTrustSource lotlTrustSource) {
+
+        TrustedListsCertificateSource trustedListsCertificateSource = new TrustedListsCertificateSource();
+
+        // build the certificate verifier for the pdf validator
+        CertificateVerifier cv =  new CommonCertificateVerifier();
+        CommonsDataLoader commonsDataLoader = new CommonsDataLoader();
+        cv.setCrlSource(new OnlineCRLSource());
+        cv.setOcspSource(new OnlineOCSPSource());
+        cv.setDataLoader(commonsDataLoader);
+        cv.setTrustedCertSources(trustedListsCertificateSource);
+
+        lotlTrustSource.getJob().setTrustedListCertificateSource(trustedListsCertificateSource);
+        lotlTrustSource.getJob().onlineRefresh();
+
+        // initialize the dss validator
+        PDFDocumentValidator dssValidator = new PDFDocumentValidator(this.pdfDocument);
+        dssValidator.setValidationLevel(determineLevel(validationLevel));
+        dssValidator.setCertificateVerifier(cv);
+
+        Reports r = dssValidator.validateDocument();
+
+        return new ValidationReport(r);
+    }
+
+    /**
+     * Performs the validation process with the given trust source
+     * @param validationLevel the level of validation severity
      * @param keystoreTrustSource the trust source that will be used to validate the document
      * @return ValidationReport that contains information regarding the validation process
      */
