@@ -55,7 +55,33 @@ public class PDFValidator {
         cv.setCrlSource(new OnlineCRLSource());
         cv.setOcspSource(new OnlineOCSPSource());
         cv.setDataLoader(commonsDataLoader);
-        cv.addTrustedCertSources(x509CertificateTrustSource.getCommonTrustedCertificateSource());
+        cv.setTrustedCertSources(x509CertificateTrustSource.getCommonTrustedCertificateSource());
+
+        // initialize the dss validator
+        PDFDocumentValidator dssValidator = new PDFDocumentValidator(this.pdfDocument);
+        dssValidator.setValidationLevel(determineLevel(validationLevel));
+        dssValidator.setCertificateVerifier(cv);
+
+        Reports r = dssValidator.validateDocument();
+
+        return new ValidationReport(r);
+    }
+
+    /**
+     * Performs the validation process with the given trust source
+     * @param validationLevel the level of validation severity
+     * @param keystoreTrustSource the trust source that will be used to validate the document
+     * @return ValidationReport that contains information regarding the validation process
+     */
+    public ValidationReport validate(ValidationLevel validationLevel, KeystoreTrustSource keystoreTrustSource) {
+
+        // build the certificate verifier for the pdf validator
+        CertificateVerifier cv =  new CommonCertificateVerifier();
+        CommonsDataLoader commonsDataLoader = new CommonsDataLoader();
+        cv.setCrlSource(new OnlineCRLSource());
+        cv.setOcspSource(new OnlineOCSPSource());
+        cv.setDataLoader(commonsDataLoader);
+        cv.setTrustedCertSources(keystoreTrustSource.getCommonTrustedCertificateSource());
 
         // initialize the dss validator
         PDFDocumentValidator dssValidator = new PDFDocumentValidator(this.pdfDocument);

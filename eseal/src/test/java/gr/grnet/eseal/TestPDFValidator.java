@@ -146,4 +146,28 @@ public class TestPDFValidator {
         Assert.assertArrayEquals("Expected detailed warnings", new String[0], vr.getWarnings());
         Assert.assertArrayEquals("Expected detailed errors", new String[0], vr.getErrors());
     }
+
+    @Test
+    public void testValidateWithKeystoreTrustSourceTotalPASS() {
+
+        PDFValidator pdfValidator = new PDFValidator(TestPDFValidator.class.getResource(testPDFpath).getFile());
+        KeystoreTrustSource keystoreTrustSource = null ;
+
+        try {
+             keystoreTrustSource =
+                    new KeystoreTrustSource(
+                            new File(TestX509CertificateTrustSource.class.getResource(
+                                    "/trustsource/eseal.truststore.jks").getFile()),
+                            "eseal12345",
+                            KeyStoreType.JKS);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        ValidationReport vr = pdfValidator.validate(gr.grnet.eseal.ValidationLevel.BASIC_SIGNATURES, keystoreTrustSource);
+        String[] errors = new String[]{"Unable to build a certificate chain until a trusted list!"};
+        assertEquals(ValidationResult.TOTAL_PASSED, vr.getValidationResult());
+        Assert.assertArrayEquals("Expected detailed warnings", new String[0], vr.getWarnings());
+        Assert.assertArrayEquals("Expected detailed errors", errors, vr.getErrors());
+    }
 }
