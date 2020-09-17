@@ -56,12 +56,48 @@ public class Example2
 
             String keystorePath = "/path/to/trustore";
             String password = "eseal12345";
-
+            
             // Initialise the trustore trust source from a file source
             KeystoreTrustSource keystoreTrustSource = new KeystoreTrustSource(keystorePath, password, KeyStoreType.JKS);
 
             // Validate the document based on the provided trust source(trustore) and the validation severity
             ValidationReport r =  pdf.validate(ValidationLevel.BASIC_SIGNATURES, keystoreTrustSource);
+
+            // get the result of the validation process
+            System.out.println(r.getValidationResult());
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+}
+
+```
+
+### PDF Validation using a Trusted List
+
+```java
+import gr.grnet.eseal.PDFValidator;
+import gr.grnet.eseal.TLTrustSource;
+import gr.grnet.eseal.ValidationLevel;
+import gr.grnet.eseal.ValidationReport;
+import gr.grnet.eseal.TrustedListURL;
+
+public class Example3 {
+
+    public static void main( String[] args ) {
+
+        // Initialise the pdf validator from a file source
+        PDFValidator pdf = new PDFValidator("/path/to/pdf");
+
+
+        try {
+            
+             // Initialise the trusted list source with the greek trusted list( https://www.eett.gr/tsl/EL-TSL.xml)
+            TLTrustSource tlTrustSource = new TLTrustSource(TrustedListURL.GREECE);
+
+            // Validate the document based on the provided trust source(trusted list) and the validation severity
+            ValidationReport r =  pdf.validate(ValidationLevel.BASIC_SIGNATURES, tlTrustSource);
 
             // get the result of the validation process
             System.out.println(r.getValidationResult());
