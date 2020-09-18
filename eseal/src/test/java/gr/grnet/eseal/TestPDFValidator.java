@@ -170,4 +170,26 @@ public class TestPDFValidator {
         Assert.assertArrayEquals("Expected detailed warnings", new String[0], vr.getWarnings());
         Assert.assertArrayEquals("Expected detailed errors", errors, vr.getErrors());
     }
+
+    @Test
+    public void testValidateWithTLTrustSourceTotalPASS() {
+
+        PDFValidator pdfValidator = new PDFValidator(TestPDFValidator.class.getResource(testPDFpath).getFile());
+
+        TLTrustSource tlTrustSource = new TLTrustSource(TrustedListURL.GREECE);
+
+        ValidationReport vr = pdfValidator.validate(gr.grnet.eseal.ValidationLevel.BASIC_SIGNATURES, tlTrustSource);
+        String[] errors = new String[]{};
+        String[] warnings = new String[]{
+                "The certificate is not for eSig at issuance time!",
+                "The private key does not reside in a QSCD at issuance time!",
+                "The certificate is not for eSig at (best) signing time!",
+                "The private key does not reside in a QSCD at (best) signing time!",
+                "The trusted list is not well signed!",
+                "The signer's certificate does not have an expected key-usage!"
+        };
+        assertEquals(ValidationResult.TOTAL_PASSED, vr.getValidationResult());
+        Assert.assertArrayEquals("Expected detailed warnings", warnings, vr.getWarnings());
+        Assert.assertArrayEquals("Expected detailed errors", errors, vr.getErrors());
+    }
 }

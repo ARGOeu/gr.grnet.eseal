@@ -5,10 +5,10 @@ import eu.europa.esig.dss.pades.validation.PDFDocumentValidator;
 import eu.europa.esig.dss.service.crl.OnlineCRLSource;
 import eu.europa.esig.dss.service.http.commons.CommonsDataLoader;
 import eu.europa.esig.dss.service.ocsp.OnlineOCSPSource;
+import eu.europa.esig.dss.spi.tsl.TrustedListsCertificateSource;
 import eu.europa.esig.dss.validation.CertificateVerifier;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
 import eu.europa.esig.dss.validation.reports.Reports;
-
 import java.io.File;
 
 /**
@@ -56,6 +56,37 @@ public class PDFValidator {
         cv.setOcspSource(new OnlineOCSPSource());
         cv.setDataLoader(commonsDataLoader);
         cv.setTrustedCertSources(x509CertificateTrustSource.getCommonTrustedCertificateSource());
+
+        // initialize the dss validator
+        PDFDocumentValidator dssValidator = new PDFDocumentValidator(this.pdfDocument);
+        dssValidator.setValidationLevel(determineLevel(validationLevel));
+        dssValidator.setCertificateVerifier(cv);
+
+        Reports r = dssValidator.validateDocument();
+
+        return new ValidationReport(r);
+    }
+
+    /**
+     * Performs the validation process with the given trust source
+     * @param validationLevel the level of validation severity
+     * @param tlTrustSource the trust source that will be used to validate the document
+     * @return ValidationReport that contains information regarding the validation process
+     */
+    public ValidationReport validate(ValidationLevel validationLevel, TLTrustSource tlTrustSource) {
+
+        TrustedListsCertificateSource trustedListsCertificateSource = new TrustedListsCertificateSource();
+
+        // build the certificate verifier for the pdf validator
+        CertificateVerifier cv =  new CommonCertificateVerifier();
+        CommonsDataLoader commonsDataLoader = new CommonsDataLoader();
+        cv.setCrlSource(new OnlineCRLSource());
+        cv.setOcspSource(new OnlineOCSPSource());
+        cv.setDataLoader(commonsDataLoader);
+        cv.setTrustedCertSources(trustedListsCertificateSource);
+
+        tlTrustSource.getJob().setTrustedListCertificateSource(trustedListsCertificateSource);
+        tlTrustSource.getJob().onlineRefresh();
 
         // initialize the dss validator
         PDFDocumentValidator dssValidator = new PDFDocumentValidator(this.pdfDocument);
