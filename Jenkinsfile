@@ -17,12 +17,7 @@ pipeline {
                 }
             }
             steps {
-                echo 'Eseal library Packaging & Testing' 
-                sh """
-                mvn clean package cobertura:cobertura -Dcobertura.report.format=xml -f ${PROJECT_DIR}/eseal/pom.xml
-                """
-                junit '**/target/surefire-reports/*.xml'
-                cobertura coberturaReportFile: '**/target/site/cobertura/coverage.xml'
+                echo 'Eseal Packaging & Testing'
             }
             post {
                 always {
