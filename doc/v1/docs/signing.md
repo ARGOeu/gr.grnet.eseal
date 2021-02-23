@@ -4,7 +4,7 @@
 
 ### Request
 
-<b>POST</b> @ <i>/api/v1/remoteSignDocument</i>
+<b>POST</b> @ <i>/api/v1/signing/remoteSignDocument</i>
 
 ### Request Body
 
