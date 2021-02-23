@@ -1,6 +1,6 @@
 package gr.grnet.eseal;
 
-import gr.grnet.eseal.config.HaricaProperties;
+import gr.grnet.eseal.config.RemoteProviderProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,19 +12,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestPropertySource(locations="classpath:application-test.properties")
 class EsealApplicationTests {
 
-	private HaricaProperties haricaProperties;
+	private RemoteProviderProperties remoteProviderProperties;
 
 	@Autowired
-	 EsealApplicationTests(HaricaProperties haricaProperties) {
-		this.haricaProperties = haricaProperties;
+	 EsealApplicationTests(RemoteProviderProperties remoteProviderProperties) {
+		this.remoteProviderProperties = remoteProviderProperties;
 	}
 
 	@Test
-	void testHaricaPropertiesLoad() {
-		assertThat("test.harica.com").isEqualTo(this.haricaProperties.getEndpoint());
-		assertThat("test-user").isEqualTo(this.haricaProperties.getUsername());
-		assertThat("test-password").isEqualTo(this.haricaProperties.getPassword());
-		assertThat("test-key").isEqualTo(this.haricaProperties.getKey());
+	void testRemoteProviderPropertiesLoad() {
+		assertThat("test.provider.com").isEqualTo(this.remoteProviderProperties.getEndpoint());
 	}
 
 	@Test
