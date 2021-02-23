@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.samstevens.totp.exceptions.CodeGenerationException;
+import gr.grnet.eseal.config.RemoteProviderProperties;
 import gr.grnet.eseal.exception.InternalServerErrorException;
+import gr.grnet.eseal.exception.InvalidTOTPException;
 import gr.grnet.eseal.exception.UnprocessableEntityException;
 import gr.grnet.eseal.utils.TOTP;
 import lombok.Getter;
@@ -46,13 +48,49 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
 
     private final String PROTOCOL = "https";
 
-    public RemoteProviderHttpEsealClient(String endpoint) throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException{
-        this.signingURL  = String.format("%s://%s/%s", this.PROTOCOL, endpoint, this.SIGNING_PATH);
+    private RemoteProviderProperties remoteProviderProperties;
+
+    public RemoteProviderHttpEsealClient(RemoteProviderProperties remoteProviderProperties) throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException{
+        this.remoteProviderProperties = remoteProviderProperties;
+        this.signingURL  = String.format("%s://%s/%s", this.PROTOCOL, remoteProviderProperties.getEndpoint(), this.SIGNING_PATH);
         this.closeableHttpClient = buildHttpClient();
     }
 
     @Override
     public String sign(String document, String username, String password, String key) {
+
+        // check if retry is enabled
+        if (this.remoteProviderProperties.isRetryEnabled()) {
+            int retryCount = 0;
+
+            while (retryCount < this.remoteProviderProperties.getRetryCounter()) {
+
+                try {
+                    return this.doSign(document, username, password, key);
+                } catch (InvalidTOTPException | InternalServerErrorException ie) {
+                    retryCount++;
+                    System.out.println("Encountered an exception while trying to sign");
+                    System.out.println(ie);
+                    System.out.println("Retrying for the " + retryCount + " time in " +
+                            this.remoteProviderProperties.getRetryInterval() + " seconds");
+                    try {
+                        Thread.sleep(this.remoteProviderProperties.getRetryInterval() * 1000);
+                    } catch (InterruptedException e) {
+                        //
+                    }
+                }
+            }
+        }
+        // if the retry mechanism has been enabled, this is the last retry
+        // otherwise is the one and only call to the remote signing service
+        return this.doSign(document, username,password,key);
+    }
+
+    /**
+     * doSign takes care of the internal business logic for connecting to the provider's's remote http api
+     * in order to sign the provided document
+     */
+    private String doSign(String document, String username, String password, String key) {
 
         // prepare the document signing request
         RemoteProviderSignDocumentRequest remoteProviderSignDocumentRequest =  new RemoteProviderSignDocumentRequest();
@@ -62,6 +100,18 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
         try {
             // generate new TOTP password
             remoteProviderSignDocumentRequest.signPassword = TOTP.generate(key);
+
+            //TODO
+            //Revisit this code block as it has been provided as a temporary solution for the TOTP
+            //timeout possibility and we need to re-evaluate it.
+            long timePeriodRemainingSeconds = TOTP.getTimePeriodRemainingSeconds();
+            if (timePeriodRemainingSeconds <= this.remoteProviderProperties.getTotpWaitForRefreshSeconds() ) {
+                System.out.println("TOTP remaining time period is below/at 5 seconds, " + timePeriodRemainingSeconds +
+                        " seconds.Waiting for expiration.");
+                Thread.sleep(timePeriodRemainingSeconds * 1000);
+                System.out.println("Generating new TOTP");
+                remoteProviderSignDocumentRequest.signPassword = TOTP.generate(key);
+            }
 
             // attempt to sign the document with remote provider
             RemoteProviderSignDocumentResponse remoteProviderSignDocumentResponse = this.doPost(remoteProviderSignDocumentRequest);
@@ -76,7 +126,7 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
 
                 // check if the totp was wrong or expired
                 if (remoteProviderSignDocumentResponse.hasInvalidTOTPKey()) {
-                    throw new UnprocessableEntityException("Invalid key or expired TOTP");
+                    throw new InvalidTOTPException();
                 }
 
                 // if any other error occurs
@@ -84,6 +134,7 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
             }
 
             // returned the signed document
+            System.out.println("Successful document signing");
             return remoteProviderSignDocumentResponse.getSignedFileData();
         }
         catch (CodeGenerationException e) {
@@ -93,6 +144,10 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
         catch (IOException ioe) {
             System.out.println(ioe);
             throw new InternalServerErrorException("Signing backend unavailable");
+        }
+        catch (InterruptedException ie) {
+            System.out.println(ie);
+            throw new InternalServerErrorException("Internal thread error");
         }
     }
 
@@ -119,7 +174,6 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
         // Make sure that the interaction with the service has closed
         EntityUtils.consume(entity);
         response.close();
-        System.out.println(current_msg.toString());
         ObjectMapper objectMapper = new ObjectMapper();
         return  objectMapper.readValue(current_msg.toString(),RemoteProviderSignDocumentResponse.class);
     }

@@ -22,6 +22,10 @@ class EsealApplicationTests {
 	@Test
 	void testRemoteProviderPropertiesLoad() {
 		assertThat("test.provider.com").isEqualTo(this.remoteProviderProperties.getEndpoint());
+		assertThat(true).isEqualTo(this.remoteProviderProperties.isRetryEnabled());
+		assertThat(3).isEqualTo(this.remoteProviderProperties.getRetryCounter());
+		assertThat(5).isEqualTo(this.remoteProviderProperties.getRetryInterval());
+		assertThat(5).isEqualTo(this.remoteProviderProperties.getTotpWaitForRefreshSeconds());
 	}
 
 	@Test

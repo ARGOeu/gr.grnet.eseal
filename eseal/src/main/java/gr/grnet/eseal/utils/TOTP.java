@@ -37,4 +37,14 @@ public class TOTP {
 
         return defaultCodeGenerator.generate(key, currentBucket);
     }
+
+    /**
+     * Calculate the remaining seconds of a period with a size of {@link TOTP#passwordPeriod}
+     * with the assumption that it has started from the Unix start date
+     * @return remain seconds of the period
+     */
+    public static long getTimePeriodRemainingSeconds() {
+        return passwordPeriod - Instant.now().getEpochSecond() % passwordPeriod;
+
+    }
 }
