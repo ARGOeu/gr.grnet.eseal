@@ -22,7 +22,7 @@ public class RemoteHttpEsealClientBean {
 
     @Bean
     public RemoteHttpEsealClient remoteHttpEsealClient() throws Exception {
-        return new RemoteProviderHttpEsealClient(this.remoteProviderProperties.getEndpoint());
+        return new RemoteProviderHttpEsealClient(this.remoteProviderProperties);
     }
 
 }
