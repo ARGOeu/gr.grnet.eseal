@@ -1,6 +1,8 @@
 package gr.grnet.eseal;
 
+import gr.grnet.eseal.config.DocumentValidatorLOTLBean;
 import gr.grnet.eseal.config.RemoteProviderProperties;
+import gr.grnet.eseal.config.ValidationProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,9 +16,29 @@ class EsealApplicationTests {
 
 	private RemoteProviderProperties remoteProviderProperties;
 
+	private ValidationProperties validationProperties;
+
+	private DocumentValidatorLOTLBean documentValidatorLOTLBean;
+
 	@Autowired
-	 EsealApplicationTests(RemoteProviderProperties remoteProviderProperties) {
+	 EsealApplicationTests(RemoteProviderProperties remoteProviderProperties,
+						   ValidationProperties validationProperties,
+						   DocumentValidatorLOTLBean documentValidatorLOTLBean) {
+
 		this.remoteProviderProperties = remoteProviderProperties;
+		this.validationProperties = validationProperties;
+		this.documentValidatorLOTLBean = documentValidatorLOTLBean;
+	}
+
+	@Test
+	void testValidationProperties() {
+		assertThat("oj.keystore.p12").isEqualTo(this.validationProperties.getOfficialJournalKeystoreFile());
+		assertThat("dss-password").isEqualTo(this.validationProperties.getOfficialJournalKeystorePassword());
+		assertThat("PKCS12").isEqualTo(this.validationProperties.getOfficialJournalKeystoreType());
+		assertThat("https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.C_.2019.276.01.0001.01.ENG")
+				.isEqualTo(this.validationProperties.getOfficialJournalUrl());
+		assertThat("/etc/eseal/conf.d/").isEqualTo(this.validationProperties.getLotlCacheDir());
+		assertThat("https://ec.europa.eu/tools/lotl/eu-lotl.xml").isEqualTo(this.validationProperties.getLotlUrl());
 	}
 
 	@Test
@@ -30,6 +52,13 @@ class EsealApplicationTests {
 		assertThat("remote_provider_http_eseal_client.truststore.jks").isEqualTo(this.remoteProviderProperties.getTruststoreFile());
 		assertThat("providerpass").isEqualTo(this.remoteProviderProperties.getTruststorePassword());
 		assertThat("JKS").isEqualTo(this.remoteProviderProperties.getTruststoreType());
+	}
+
+	@Test
+	void testDocumentValidatorLOTLBean() {
+		assertThat(true).isEqualTo(this.documentValidatorLOTLBean.getLotlRefreshEnable());
+		assertThat(0).isEqualTo(this.documentValidatorLOTLBean.getRefreshInitialDelay());
+		assertThat(21600000).isEqualTo(this.documentValidatorLOTLBean.getRefreshInterval());
 	}
 
 	@Test
