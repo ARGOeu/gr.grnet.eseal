@@ -26,6 +26,10 @@ class EsealApplicationTests {
 		assertThat(3).isEqualTo(this.remoteProviderProperties.getRetryCounter());
 		assertThat(5).isEqualTo(this.remoteProviderProperties.getRetryInterval());
 		assertThat(5).isEqualTo(this.remoteProviderProperties.getTotpWaitForRefreshSeconds());
+		assertThat(true).isEqualTo(this.remoteProviderProperties.isTlsVerifyEnabled());
+		assertThat("remote_provider_http_eseal_client.truststore.jks").isEqualTo(this.remoteProviderProperties.getTruststoreFile());
+		assertThat("providerpass").isEqualTo(this.remoteProviderProperties.getTruststorePassword());
+		assertThat("JKS").isEqualTo(this.remoteProviderProperties.getTruststoreType());
 	}
 
 	@Test

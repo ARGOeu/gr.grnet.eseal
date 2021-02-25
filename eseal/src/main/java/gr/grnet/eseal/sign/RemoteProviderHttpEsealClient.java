@@ -24,14 +24,14 @@ import org.apache.http.util.EntityUtils;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import java.security.*;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 /**
@@ -50,7 +50,8 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
 
     private RemoteProviderProperties remoteProviderProperties;
 
-    public RemoteProviderHttpEsealClient(RemoteProviderProperties remoteProviderProperties) throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException{
+    public RemoteProviderHttpEsealClient(RemoteProviderProperties remoteProviderProperties) throws
+            IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException{
         this.remoteProviderProperties = remoteProviderProperties;
         this.signingURL  = String.format("%s://%s/%s", this.PROTOCOL, remoteProviderProperties.getEndpoint(), this.SIGNING_PATH);
         this.closeableHttpClient = buildHttpClient();
@@ -179,7 +180,8 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
     }
 
 
-    private CloseableHttpClient buildHttpClient() throws NoSuchAlgorithmException, KeyManagementException {
+    private CloseableHttpClient buildHttpClient() throws IOException, KeyStoreException, NoSuchAlgorithmException,
+            CertificateException, KeyManagementException {
 
         // socket config
         SocketConfig socketCfg = SocketConfig.custom().
@@ -191,24 +193,50 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
                 setConnectionRequestTimeout(30000).
                 build();
 
-        // ssl
+        // ssl context
         SSLContext sslContext = SSLContext.getInstance("SSL");
 
-// set up a TrustManager that trusts everything
-        sslContext.init(null, new TrustManager[] { new X509TrustManager() {
-            public X509Certificate[] getAcceptedIssuers() {
-                return null;
-            }
+        // set up a TrustManager that trusts everything
+        if (!this.remoteProviderProperties.isTlsVerifyEnabled()) {
+            sslContext.init(null, new TrustManager[]{new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
 
-            public void checkClientTrusted(X509Certificate[] certs,
-                                           String authType) {
-            }
+                public void checkClientTrusted(X509Certificate[] certs,
+                                               String authType) {
+                }
 
-            public void checkServerTrusted(X509Certificate[] certs,
-                                           String authType) {
-            }
-        } }, new SecureRandom());
+                public void checkServerTrusted(X509Certificate[] certs,
+                                               String authType) {
+                }
+            }}, new SecureRandom());
+        } else {
 
+            // set up a trust manager with the appropriate client truststore
+            // in order to verify the remote provider api
+
+            /* Load client truststore. */
+            KeyStore theClientTruststore = KeyStore.getInstance(this.remoteProviderProperties.getTruststoreType());
+
+            InputStream clientTruststoreIS = this.getClass().
+                    getResourceAsStream("/".concat(this.remoteProviderProperties.getTruststoreFile()));
+
+            theClientTruststore.load(clientTruststoreIS,
+                    this.remoteProviderProperties.getTruststorePassword().toCharArray());
+
+
+        /* Create a trust manager factory using the client truststore. */
+        final TrustManagerFactory theTrustManagerFactory = TrustManagerFactory.getInstance(
+                TrustManagerFactory.getDefaultAlgorithm());
+        theTrustManagerFactory.init(theClientTruststore);
+
+        /*
+         * Create a SSL context with a trust manager that uses the
+         * client truststore.
+         */
+        sslContext.init(null, theTrustManagerFactory.getTrustManagers(),new SecureRandom());
+        }
 
         // build the client
         return HttpClients.custom().
