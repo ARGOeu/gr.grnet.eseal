@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
     * RemoteProviderProperties holds the configuration properties regarding the interaction
-    * of the API with the Harica rest api for signing and timestamping documents
+    * of the API with the Provider's rest api for signing and timestamping documents
  */
 @Setter
 @Configuration
@@ -47,6 +47,31 @@ public class RemoteProviderProperties {
     @Value("${eseal.remote.provider.totp.refresh.seconds.wait}")
     private int totpWaitForRefreshSeconds;
 
+    /**
+     * Try to verify the remote API certs using a client truststore,
+     * otherwise use a TRUST_ALL strategy
+     */
+    @Value("${eseal.remote.provider.tls.verify}")
+    private boolean tlsVerifyEnabled;
+
+    /**
+     * Keystore file containing the needed certs to verify the remote API(client truststore)
+     */
+    @Value("${eseal.remote.provider.truststore.file}")
+    private String truststoreFile;
+
+    /**
+     * Password to access the client truststore
+     */
+    @Value("${eseal.remote.provider.truststore.password}")
+    private String truststorePassword;
+
+    /**
+     * Type of the client truststore
+     */
+    @Value("${eseal.remote.provider.truststore.type}")
+    private String truststoreType;
+
     public String getEndpoint() {
         return endpoint;
     }
@@ -65,5 +90,21 @@ public class RemoteProviderProperties {
 
     public int getTotpWaitForRefreshSeconds() {
         return totpWaitForRefreshSeconds;
+    }
+
+    public boolean isTlsVerifyEnabled() {
+        return tlsVerifyEnabled;
+    }
+
+    public String getTruststoreFile() {
+        return truststoreFile;
+    }
+
+    public String getTruststorePassword() {
+        return truststorePassword;
+    }
+
+    public String getTruststoreType() {
+        return truststoreType;
     }
 }
