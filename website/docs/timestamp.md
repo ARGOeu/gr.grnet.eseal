@@ -8,7 +8,9 @@ title: PDF Timestamp API Calls
 
 ### Request
 
-<b>POST</b> @ <i>/timestamping/timestampDocument</i>### Request Body`bytes`: The pdf document in base64 encoded format
+<b>POST</b> @ <i>/timestamping/timestampDocument</i>
+
+### Request Body `bytes` : The pdf document in base64 encoded format
 ```json
 {
   "timestampParameters" : {
