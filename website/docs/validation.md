@@ -1,3 +1,8 @@
+---
+id: validation
+title: PDF Validation
+---
+
 # PDF Validation API Calls
 
 ## POST - Validate a PDF Document
@@ -7,7 +12,7 @@
 
 ### Request Body
 
-- `bytes` : The PDF to be validated should be encoded in base64 format 
+- `bytes` : The PDF to be validated should be encoded in base64 format
 - `name`: Optional name for the pdf document
 
 ```json

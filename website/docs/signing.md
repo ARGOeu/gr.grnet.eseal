@@ -1,6 +1,11 @@
+---
+id: signing
+title: PDF Signing
+---
+
 # PDF Signing API Calls
 
-## POST - Sign a PDF document 
+## POST - Sign a PDF document
 
 ### Request
 
