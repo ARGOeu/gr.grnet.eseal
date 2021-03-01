@@ -1,12 +1,12 @@
 ---
 id: index
-title: Style Guide
+title: E-seal REST API Documentation
 sidebar_label: Style Guide
 slug: /
 ---
 
-E-seal REST API Documentation
 
 -   [PDF Signing](signing.md)
 -   [PDF Validation](validation.md)
+-   [PDF Timestamp](timestamp.md)
 -   [API Errors](errors.md)

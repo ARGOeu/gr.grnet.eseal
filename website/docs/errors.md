@@ -3,7 +3,6 @@ id: errors
 title: API Errors
 ---
 
-# Errors
 
 In case of Error during handling user’s request the API responds using the following schema:
 

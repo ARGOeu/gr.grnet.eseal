@@ -1,5 +1,5 @@
 module.exports = {
   someSidebar: {
-    'E-signature library': ['index', 'signing', 'validation', 'errors'],
+    'E-signature library': ['index', 'signing', 'validation', 'errors', 'timestamp'],
   },
 };
