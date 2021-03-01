@@ -1,13 +1,13 @@
 module.exports = {
   title: 'My Site',
   tagline: 'The tagline of my site',
-  url: 'https://your-docusaurus-test-site.com',
-  baseUrl: '/',
-//  baseUrl: 'gr.grnet.eseal',
+  url: 'https://argoeu.github.io',
+//  baseUrl: '/',
+  baseUrl: '/gr.grnet.eseal/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/grnet-favicon.png',
-  organizationName: 'GRNET', // Usually your GitHub org/user name.
+  organizationName: 'ARGOeu', // Usually your GitHub org/user name.
   projectName: 'gr.grnet.eseal', // Usually your repo name.
   themeConfig: {
     navbar: {
@@ -78,7 +78,7 @@ module.exports = {
           ],
         },
       ],
-      copyright: `<img alt="grnet" src="/img/grnet-logo.png" height="50px"> </a> <br /> Copyright © ${new Date().getFullYear()} <a href="http://www.grnet.gr/"> GRNET </a>`,
+      copyright: `<img alt="grnet" src="img/grnet-logo.png" height="50px"> </a> <br /> Copyright © ${new Date().getFullYear()} <a href="http://www.grnet.gr/"> GRNET </a>`,
     },
   },
   presets: [
