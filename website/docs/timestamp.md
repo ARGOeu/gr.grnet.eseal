@@ -1,9 +1,9 @@
 ---
 id: timestamp
+title: PDF Timestamp API Calls
 sidebar_label: PDF Timestamp API Calls
 ---
 
-# PDF Timestamp API Calls
 
 ## POST - Timestamp PDF Document
 
