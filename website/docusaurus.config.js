@@ -1,6 +1,6 @@
 module.exports = {
-  title: 'My Site',
-  tagline: 'The tagline of my site',
+  title: 'E-SEAL Module',
+  tagline: 'Signing validating documents',
   url: 'https://argoeu.github.io',
 //  baseUrl: '/',
   baseUrl: '/gr.grnet.eseal/',
@@ -11,7 +11,7 @@ module.exports = {
   projectName: 'gr.grnet.eseal', // Usually your repo name.
   themeConfig: {
     navbar: {
-      title: 'My Site',
+      title: 'E-SEAL',
       logo: {
         alt: 'GRNET',
         src: 'img/grnet-logo.png',
