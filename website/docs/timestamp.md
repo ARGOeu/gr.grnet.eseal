@@ -1,16 +1,20 @@
 ---
 id: timestamp
+sidebar_label: PDF Timestamp API Calls
 ---
 
-# Documentation contents
+# PDF Timestamp API Calls
 
 ## POST - Timestamp PDF Document
 
 ### Request
 
-<b>POST</b> @ <i>/timestamping/timestampDocument</i>
+<b>POST</b> @ <i>/api/v1/timestamping/timestampDocument</i>
 
-### Request Body `bytes` : The pdf document in base64 encoded format
+### Request Body
+
+`bytes` : The pdf document in base64 encoded format
+
 ```json
 {
   "timestampParameters" : {

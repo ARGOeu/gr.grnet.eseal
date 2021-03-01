@@ -1,8 +1,9 @@
 ---
 id: validation
-title: PDF Validation API Calls
+sidebar_label: PDF Validation API Calls
 ---
 
+# PDF Validation API Calls
 
 ## POST - Validate a PDF Document
 
