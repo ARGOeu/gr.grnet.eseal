@@ -1,8 +1,8 @@
 ---
 id: timestamp
-title: PDF Timestamp API Calls
 ---
 
+# Documentation contents
 
 ## POST - Timestamp PDF Document
 

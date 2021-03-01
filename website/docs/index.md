@@ -1,7 +1,7 @@
 ---
 id: index
 title: E-seal REST API Documentation
-sidebar_label: Style Guide
+sidebar_label: Documentation contents
 slug: /
 ---
 
