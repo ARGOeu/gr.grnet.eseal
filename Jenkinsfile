@@ -11,15 +11,22 @@ pipeline {
         GH_EMAIL = '<argo@grnet.gr>'
     }
     stages {
-        stage('Library Testing & Packaging') {
+        stage('E-seal API Packaging & Testing') {
             agent {
                 docker {
-                    image 'argo.registry:5000/epel-7-java18'
+                    image 'argo.registry:5000/epel-7-java18-mvn36'
                     args '-u jenkins:jenkins'
                 }
             }
             steps {
-                echo 'Eseal Packaging & Testing'
+                echo 'E-seal API Packaging & Testing'
+                sh """
+                mvn clean install -f ${PROJECT_DIR}/eseal/pom.xml
+                mvn clean package cobertura:cobertura -Dcobertura.report.format=xml -f ${PROJECT_DIR}/eseal/pom.xml
+                """
+                junit '**/target/surefire-reports/*.xml'
+                cobertura coberturaReportFile: '**/target/site/cobertura/coverage.xml'
+                archiveArtifacts artifacts: '**/target/*.jar'
             }
             post {
                 always {
