@@ -2,6 +2,17 @@
 id: validation
 title: PDF Validation API Calls
 sidebar_label: PDF Validation API Calls
+keywords:
+  - eseal
+  - e-seal
+  - validation
+  - api
+  - doc
+  - docs
+  - documentation
+  - documents
+  - pdf
+  - grnet
 ---
 
 

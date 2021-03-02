@@ -3,6 +3,20 @@ id: index
 title: E-seal REST API Documentation
 sidebar_label: Documentation contents
 slug: /
+keywords:
+  - eseal
+  - e-seal
+  - signing
+  - validation
+  - timestamp
+  - errors
+  - api
+  - doc
+  - docs
+  - documentation
+  - documents
+  - pdf
+  - grnet
 ---
 
 

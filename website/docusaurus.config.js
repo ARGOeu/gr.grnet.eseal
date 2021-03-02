@@ -1,6 +1,6 @@
 module.exports = {
   title: 'E-SEAL Module',
-  tagline: 'Signing validating documents',
+  tagline: 'Signing & Validation of documents',
   url: 'https://argoeu.github.io',
 //  baseUrl: '/',
   baseUrl: '/gr.grnet.eseal/',
@@ -37,7 +37,7 @@ module.exports = {
         alt: 'GRNET',
         src: 'img/grnet-logo.png',
         href: 'http://www.grnet.gr/',
-      }, 
+      },
       copyright: `Copyright © ${new Date().getFullYear()} <a href="http://www.grnet.gr/"> GRNET </a>`,
     },
   },
