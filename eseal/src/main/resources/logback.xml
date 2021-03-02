@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+<!--    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">-->
+<!--        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">-->
+<!--            <pattern>-->
+<!--                %black(%d{ISO8601}) %highlight(%-5level) [%blue(%t)] %yellow(%C{1.}): %msg%n%throwable-->
+<!--            </pattern>-->
+<!--        </encoder>-->
+<!--    </appender>-->
+
+     <appender name="jsonConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+        </appender>
+        <root level="INFO">
+            <appender-ref ref="jsonConsoleAppender"/>
+        </root>
+
+
+<!--    <root level="info">-->
+<!--        <appender-ref ref="Console" />-->
+<!--    </root>-->
+
+
+</configuration>
