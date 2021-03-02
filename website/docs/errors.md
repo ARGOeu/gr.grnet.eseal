@@ -2,6 +2,17 @@
 id: errors
 title: API Errors
 sidebar_label: API Errors
+keywords:
+  - eseal
+  - e-seal
+  - errors
+  - api
+  - doc
+  - docs
+  - documentation
+  - documents
+  - pdf
+  - grnet
 ---
 
 

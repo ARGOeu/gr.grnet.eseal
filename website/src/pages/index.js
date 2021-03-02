@@ -9,7 +9,7 @@ import styles from './styles.module.css';
 const features = [
   {
     title: 'Sing PDF documents',
-    imageUrl: 'img/undraw_docusaurus_tree.svg',
+    imageUrl: 'img/undraw_terms.svg',
     description: (
       <>
         E-seal Module adds qualified e-sealing capabilities.
@@ -17,8 +17,10 @@ const features = [
     ),
   },
   {
+  },
+  {
     title: 'Validate PDF documents',
-    imageUrl: 'img/undraw_docusaurus_react.svg',
+    imageUrl: 'img/undraw_file.svg',
     description: (
       <>
         Check if PDF documents contain qualified digital signatures.
