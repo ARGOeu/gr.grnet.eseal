@@ -1,9 +1,11 @@
 package gr.grnet.eseal.aop;
 
-import gr.grnet.eseal.exception.APIException;
+import gr.grnet.eseal.exception.APIError;
 import gr.grnet.eseal.utils.RequestLogField;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
@@ -13,9 +15,12 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import static net.logstash.logback.argument.StructuredArguments.f;
@@ -42,44 +47,70 @@ public class AspectComponent {
     @Around("restController()")
     public Object log(ProceedingJoinPoint joinPoint) throws Throwable {
 
-        Class clazz = joinPoint.getTarget().getClass();
-        Logger logger =  LoggerFactory.getLogger(clazz);
+
         long start = System.currentTimeMillis();
+
+        request.setAttribute("start_time", start);
 
         MDC.put("request_id", String.valueOf(UUID.randomUUID()));
 
-        String message = "Request completed";
-        String status = HttpStatus.OK.toString();
+        Object object = joinPoint.proceed();
 
-        try {
+        RequestLogField field = RequestLogField
+                .builder()
+                .path(request.getServletPath())
+                .method(request.getMethod())
+                .processing_time(getProcessingTime(start))
+                .status(HttpStatus.OK.toString())
+                .type("request_log")
+                .build();
 
-            Object object = joinPoint.proceed();
-            return object;
-        } catch (APIException ex) {
 
-            message = ex.getMessage();
-            status = ex.getStatus().toString();
-            throw ex;
+        getLogger(joinPoint).info("Request completed", f(field));
 
-        } finally {
+        MDC.remove("request_id");
 
-            RequestLogField field = RequestLogField
-                    .builder()
-                    .path(request.getServletPath())
-                    .method(request.getMethod())
-                    .processing_time(getAge(start))
-                    .status(status)
-                    .type("request_log")
-                    .build();
-
-            logger.info(message, f(field));
-
-            MDC.remove("request_id");
-        }
+        return object;
 
     }
 
-    private String getAge(long value) {
+    @Pointcut("within(@org.springframework.web.bind.annotation.ControllerAdvice *)")
+    public void beanAnnotatedWithControllerAdvice() {}
+
+    @Pointcut("execution(public * *(..))")
+    public void publicMethod() {}
+
+    @Pointcut("publicMethod() && beanAnnotatedWithControllerAdvice()")
+    public void publicMethodInsideAClassMarkedWithAtBeanAnnotatedWithControllerAdvice() {
+
+    }
+
+
+    @AfterReturning(pointcut = "publicMethodInsideAClassMarkedWithAtBeanAnnotatedWithControllerAdvice()", returning="response")
+    public void logAfterReturningException(JoinPoint joinPoint, Object response) throws Throwable
+    {
+
+        if(Objects.isNull(MDC.get("request_id"))){
+            MDC.put("request_id", String.valueOf(UUID.randomUUID()));
+        }
+
+        ResponseEntity<APIError> error = (ResponseEntity<APIError>) response;
+
+        RequestLogField field = RequestLogField
+                .builder()
+                .path(request.getServletPath())
+                .method(request.getMethod())
+                .processing_time(getProcessingTime(Optional.ofNullable((Long) request.getAttribute("start_time")).orElse(System.currentTimeMillis())))
+                .status(error.getStatusCode().toString())
+                .type("request_log")
+                .build();
+
+        getLogger(joinPoint).error(Optional.ofNullable(error.getBody().getApiErrorBody().getMessage()).orElse("Internal server error"), f(field));
+
+        MDC.remove("request_id");
+    }
+
+    private String getProcessingTime(long value) {
         long currentTime = System.currentTimeMillis();
         long age = currentTime - value;
         String ageString = DurationFormatUtils.formatDuration(age, "d") + "d";
@@ -98,5 +129,12 @@ public class AspectComponent {
         return ageString;
     }
 
+    private Logger getLogger(JoinPoint jp){
+
+        Class clazz = jp.getTarget().getClass();
+        return  LoggerFactory.getLogger(clazz);
+    }
+
 
 }
+

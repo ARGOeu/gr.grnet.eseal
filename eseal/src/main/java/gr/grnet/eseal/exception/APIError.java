@@ -12,7 +12,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 @Setter
 @NoArgsConstructor
-class APIError {
+public class APIError {
 
     @JsonProperty("error")
     private APIErrorBody apiErrorBody;
@@ -23,7 +23,7 @@ class APIError {
 
     @Getter
     @Setter
-    private  class APIErrorBody {
+    public class APIErrorBody {
         private int code;
         private String message;
         private HttpStatus status;
