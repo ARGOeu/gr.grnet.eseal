@@ -19,7 +19,7 @@ keywords:
 ## POST - Validate a PDF Document
 
 ### Request
-<b>POST</b> @ <i> /api/v1/services/rest/validation/validateSignature </i>
+<b>POST</b> @ <i> /api/v1/validation/validateDocument </i>
 
 ### Request Body
 
