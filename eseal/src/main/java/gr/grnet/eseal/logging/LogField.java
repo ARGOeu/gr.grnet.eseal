@@ -14,6 +14,6 @@ import lombok.Setter;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class LogField {
 
-    private String type;
+    private LogType type;
 
 }

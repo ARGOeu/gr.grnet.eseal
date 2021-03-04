@@ -9,6 +9,7 @@ import gr.grnet.eseal.exception.InternalServerErrorException;
 import gr.grnet.eseal.exception.InvalidTOTPException;
 import gr.grnet.eseal.exception.UnprocessableEntityException;
 import gr.grnet.eseal.logging.BackEndLogField;
+import gr.grnet.eseal.logging.ServiceLogField;
 import gr.grnet.eseal.utils.TOTP;
 import gr.grnet.eseal.utils.Utils;
 import lombok.Getter;
@@ -79,10 +80,16 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
                     return this.doSign(document, username, password, key);
                 } catch (InvalidTOTPException | InternalServerErrorException ie) {
                     retryCount++;
-                    System.out.println("Encountered an exception while trying to sign");
-                    System.out.println(ie);
-                    System.out.println("Retrying for the " + retryCount + " time in " +
-                            this.remoteProviderProperties.getRetryInterval() + " seconds");
+                    logger.warn("Encountered an exception while trying to sign",
+                            f(ServiceLogField
+                                    .builder()
+                                    .details(ie.getMessage())
+                                    .build()));
+                    logger.info("Retrying for the {} time in {} seconds", retryCount,
+                            this.remoteProviderProperties.getRetryInterval(),
+                            f(ServiceLogField
+                            .builder()
+                            .build()));
                     try {
                         Thread.sleep(this.remoteProviderProperties.getRetryInterval() * 1000);
                     } catch (InterruptedException e) {
@@ -119,10 +126,17 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
             //timeout possibility and we need to re-evaluate it.
             long timePeriodRemainingSeconds = TOTP.getTimePeriodRemainingSeconds();
             if (timePeriodRemainingSeconds <= this.remoteProviderProperties.getTotpWaitForRefreshSeconds() ) {
-                System.out.println("TOTP remaining time period is below/at 5 seconds, " + timePeriodRemainingSeconds +
-                        " seconds.Waiting for expiration.");
+                logger.info("TOTP remaining time period is below/at {} seconds, {} seconds.Waiting for expiration.",
+                        this.remoteProviderProperties.getTotpWaitForRefreshSeconds(),
+                        timePeriodRemainingSeconds,
+                        f(ServiceLogField
+                                .builder()
+                                .build()));
                 Thread.sleep(timePeriodRemainingSeconds * 1000);
-                System.out.println("Generating new TOTP");
+                logger.info("Generating new TOTP",
+                        f(ServiceLogField
+                        .builder()
+                        .build()));
                 remoteProviderSignDocumentRequest.signPassword = TOTP.generate(key);
             }
 
@@ -190,7 +204,11 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
             return remoteProviderSignDocumentResponse.getSignedFileData();
         }
         catch (CodeGenerationException e) {
-            System.out.println(e);
+            logger.error("TOTP generator has encountered an error",
+                    f(ServiceLogField
+                            .builder()
+                            .details(e.getMessage())
+                            .build()));
             throw new InternalServerErrorException("TOTP generator has encountered an error");
         }
         catch (IOException ioe) {
@@ -206,7 +224,11 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
             throw new InternalServerErrorException("Signing backend unavailable");
         }
         catch (InterruptedException ie) {
-            System.out.println(ie);
+            logger.error("Internal thread error",
+                    f(ServiceLogField
+                            .builder()
+                            .details(ie.getMessage())
+                            .build()));
             throw new InternalServerErrorException("Internal thread error");
         }
     }

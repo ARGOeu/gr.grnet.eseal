@@ -26,11 +26,15 @@ import eu.europa.esig.dss.tsl.source.LOTLSource;
 import eu.europa.esig.dss.validation.CertificateVerifier;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
 import gr.grnet.eseal.config.ValidationProperties;
+import gr.grnet.eseal.logging.ServiceLogField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Arrays;
+
+import static net.logstash.logback.argument.StructuredArguments.f;
+
 
 /**
  *
@@ -143,7 +147,11 @@ public class DocumentValidatorLOTL {
     private File tlCacheDirectory() {
         File lotlCache = new File(this.validationProperties.getLotlCacheDir(), lotlCacheFolder);
         if (!lotlCache.exists()) {
-            logger.info("LOTL cache " + lotlCache.getAbsolutePath() + " doesn't exist.");
+            logger.info("LOTL cache {} doesn't exist.",
+                    lotlCache.getAbsolutePath(),
+                    f(ServiceLogField
+                    .builder()
+                    .build()));
         }
         return lotlCache;
     }
