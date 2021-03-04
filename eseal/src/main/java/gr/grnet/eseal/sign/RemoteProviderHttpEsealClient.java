@@ -8,7 +8,9 @@ import gr.grnet.eseal.config.RemoteProviderProperties;
 import gr.grnet.eseal.exception.InternalServerErrorException;
 import gr.grnet.eseal.exception.InvalidTOTPException;
 import gr.grnet.eseal.exception.UnprocessableEntityException;
+import gr.grnet.eseal.logging.BackEndLogField;
 import gr.grnet.eseal.utils.TOTP;
+import gr.grnet.eseal.utils.Utils;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,6 +23,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -34,11 +38,16 @@ import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
+import static net.logstash.logback.argument.StructuredArguments.f;
+
+
 /**
  * RemoteProviderHttpEsealClient implements a {@link RemoteHttpEsealClient} that allows the usage of a provider's remote http
  * rest api in order to access e-seals and sign documents
  */
 public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
+
+    private static final Logger logger = LoggerFactory.getLogger(RemoteProviderHttpEsealClient.class);
 
     private CloseableHttpClient closeableHttpClient;
 
@@ -98,6 +107,9 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
         remoteProviderSignDocumentRequest.fileData = document;
         remoteProviderSignDocumentRequest.username = username;
         remoteProviderSignDocumentRequest.password = password;
+
+        long start = System.currentTimeMillis();
+
         try {
             // generate new TOTP password
             remoteProviderSignDocumentRequest.signPassword = TOTP.generate(key);
@@ -117,25 +129,64 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
             // attempt to sign the document with remote provider
             RemoteProviderSignDocumentResponse remoteProviderSignDocumentResponse = this.doPost(remoteProviderSignDocumentRequest);
 
+            String executionTime = Utils.formatTimePeriod(start);
+
             // check if the signing was successful
             if (!remoteProviderSignDocumentResponse.isSuccessful()) {
 
                 // check if the user could not login
                 if (remoteProviderSignDocumentResponse.hasFailedToLogin()) {
+
+                    logger.error("Failed to login",
+                            f(BackEndLogField
+                                    .builder()
+                                    .backendHost(this.remoteProviderProperties.getEndpoint())
+                                    .details(remoteProviderSignDocumentResponse.getErrorData().getMessage())
+                                    .executionTime(executionTime)
+                                    .build()
+                            ));
+
                     throw new UnprocessableEntityException("Wrong user credentials");
                 }
 
                 // check if the totp was wrong or expired
                 if (remoteProviderSignDocumentResponse.hasInvalidTOTPKey()) {
+
+                    logger.error("Invalid TOTP",
+                            f(BackEndLogField
+                                    .builder()
+                                    .backendHost(this.remoteProviderProperties.getEndpoint())
+                                    .details(remoteProviderSignDocumentResponse.getErrorData().getMessage())
+                                    .executionTime(executionTime)
+                                    .build()
+                            ));
+
                     throw new InvalidTOTPException();
                 }
 
                 // if any other error occurs
+
+                logger.error("Error response from provider",
+                        f(BackEndLogField
+                                .builder()
+                                .backendHost(this.remoteProviderProperties.getEndpoint())
+                                .details(remoteProviderSignDocumentResponse.getErrorData().getMessage())
+                                .executionTime(executionTime)
+                                .build()
+                        ));
+
                 throw new InternalServerErrorException("Error with signing backend");
             }
 
             // returned the signed document
-            System.out.println("Successful document signing");
+            logger.info("Successful document signing",
+                    f(BackEndLogField
+                            .builder()
+                            .backendHost(this.remoteProviderProperties.getEndpoint())
+                            .executionTime(executionTime)
+                            .build()
+                    ));
+
             return remoteProviderSignDocumentResponse.getSignedFileData();
         }
         catch (CodeGenerationException e) {
@@ -143,7 +194,15 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
             throw new InternalServerErrorException("TOTP generator has encountered an error");
         }
         catch (IOException ioe) {
-            System.out.println(ioe);
+
+            logger.error("Error communicating with provider's backend",
+                    f(BackEndLogField
+                            .builder()
+                            .backendHost(this.remoteProviderProperties.getEndpoint())
+                            .details(ioe.getMessage())
+                            .executionTime(Utils.formatTimePeriod(start))
+                            .build()
+                    ));
             throw new InternalServerErrorException("Signing backend unavailable");
         }
         catch (InterruptedException ie) {
@@ -299,12 +358,10 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
         }
 
         private Boolean hasFailedToLogin() {
-            System.out.println(this.errorData.message);
             return this.errorData.message.contains("Failed to Logon");
         }
 
         private Boolean hasInvalidTOTPKey() {
-            System.out.println(this.errorData.message);
             return this.errorData.message.contains("Failed to Sign");
         }
     }

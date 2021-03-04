@@ -1,5 +1,6 @@
-package gr.grnet.eseal.utils;
+package gr.grnet.eseal.logging;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,14 +14,15 @@ public class RequestLogField extends LogField {
 
     private String method;
     private String path;
-    private String processing_time;
+    @JsonProperty("processing_time")
+    private String processingTime;
     private String status;
 
 
     @Builder
-    public RequestLogField(String type, String processing_time, String method, String path, String status) {
-        super(type);
-        this.processing_time = processing_time;
+    public RequestLogField(String processingTime, String method, String path, String status) {
+        super("request_log");
+        this.processingTime = processingTime;
         this.method = method;
         this.path = path;
         this.status = status;

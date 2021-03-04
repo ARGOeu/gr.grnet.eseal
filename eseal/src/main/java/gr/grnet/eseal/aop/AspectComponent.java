@@ -1,8 +1,8 @@
 package gr.grnet.eseal.aop;
 
 import gr.grnet.eseal.exception.APIError;
-import gr.grnet.eseal.utils.RequestLogField;
-import org.apache.commons.lang3.time.DurationFormatUtils;
+import gr.grnet.eseal.logging.RequestLogField;
+import gr.grnet.eseal.utils.Utils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -60,9 +60,8 @@ public class AspectComponent {
                 .builder()
                 .path(request.getServletPath())
                 .method(request.getMethod())
-                .processing_time(getProcessingTime(start))
+                .processingTime(Utils.formatTimePeriod(start))
                 .status(HttpStatus.OK.toString())
-                .type("request_log")
                 .build();
 
 
@@ -100,9 +99,8 @@ public class AspectComponent {
                 .builder()
                 .path(request.getServletPath())
                 .method(request.getMethod())
-                .processing_time(getProcessingTime(Optional.ofNullable((Long) request.getAttribute("start_time")).orElse(System.currentTimeMillis())))
+                .processingTime(Utils.formatTimePeriod(Optional.ofNullable((Long) request.getAttribute("start_time")).orElse(System.currentTimeMillis())))
                 .status(error.getStatusCode().toString())
-                .type("request_log")
                 .build();
 
         getLogger(joinPoint).error(Optional.ofNullable(error.getBody().getApiErrorBody().getMessage()).orElse("Internal server error"), f(field));
@@ -110,24 +108,6 @@ public class AspectComponent {
         MDC.remove("request_id");
     }
 
-    private String getProcessingTime(long value) {
-        long currentTime = System.currentTimeMillis();
-        long age = currentTime - value;
-        String ageString = DurationFormatUtils.formatDuration(age, "d") + "d";
-        if ("0d".equals(ageString)) {
-            ageString = DurationFormatUtils.formatDuration(age, "H") + "h";
-            if ("0h".equals(ageString)) {
-                ageString = DurationFormatUtils.formatDuration(age, "m") + "m";
-                if ("0m".equals(ageString)) {
-                    ageString = DurationFormatUtils.formatDuration(age, "s") + "s";
-                    if ("0s".equals(ageString)) {
-                        ageString = age + "ms";
-                    }
-                }
-            }
-        }
-        return ageString;
-    }
 
     private Logger getLogger(JoinPoint jp){
 
