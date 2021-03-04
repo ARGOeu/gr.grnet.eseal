@@ -20,7 +20,7 @@ public class BackEndLogField extends LogField {
 
     @Builder
     public BackEndLogField(String backendHost, String details, String executionTime) {
-        super("backend_log");
+        super(LogType.BACKEND_LOG);
         this.backendHost = backendHost;
         this.details = details;
         this.executionTime = executionTime;

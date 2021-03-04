@@ -21,7 +21,7 @@ public class RequestLogField extends LogField {
 
     @Builder
     public RequestLogField(String processingTime, String method, String path, String status) {
-        super("request_log");
+        super(LogType.REQUEST_LOG);
         this.processingTime = processingTime;
         this.method = method;
         this.path = path;
