@@ -58,14 +58,9 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient {
     private static final int SOCKET_TIMEOUT = 30000;
     private static final int CONNECTION_TIMEOUT = 30000;
     private static final int CONNECTION_REQUEST_TIMEOUT = 30000;
-
-
-
-    private final CloseableHttpClient closeableHttpClient;
-
-    private final String signingURL;
-
-    private final RemoteProviderProperties remoteProviderProperties;
+    private CloseableHttpClient closeableHttpClient;
+    private String signingURL;
+    private  RemoteProviderProperties remoteProviderProperties;
 
     public RemoteProviderHttpEsealClient(RemoteProviderProperties remoteProviderProperties) throws
             IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
@@ -74,6 +69,13 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient {
                 PROTOCOL, remoteProviderProperties.getEndpoint(),
                 SIGNING_PATH);
         this.closeableHttpClient = buildHttpClient();
+    }
+
+    // No args constructor, better used only during testing
+    public RemoteProviderHttpEsealClient() { }
+
+    public void setRemoteProviderProperties(RemoteProviderProperties remoteProviderProperties) {
+        this.remoteProviderProperties = remoteProviderProperties;
     }
 
     @Override

@@ -1,5 +1,7 @@
 package gr.grnet.eseal.config;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -10,6 +12,8 @@ import org.springframework.context.annotation.Configuration;
     * of the API with the Provider's rest api for signing and timestamping documents
  */
 @Setter
+@Getter
+@NoArgsConstructor
 @Configuration
 @ConfigurationProperties(prefix = "eseal.remote.provider")
 public class RemoteProviderProperties {
@@ -72,39 +76,4 @@ public class RemoteProviderProperties {
     @Value("${eseal.remote.provider.truststore.type}")
     private String truststoreType;
 
-    public String getEndpoint() {
-        return endpoint;
-    }
-
-    public boolean isRetryEnabled() {
-        return retryEnabled;
-    }
-
-    public int getRetryCounter() {
-        return retryCounter;
-    }
-
-    public int getRetryInterval() {
-        return retryInterval;
-    }
-
-    public int getTotpWaitForRefreshSeconds() {
-        return totpWaitForRefreshSeconds;
-    }
-
-    public boolean isTlsVerifyEnabled() {
-        return tlsVerifyEnabled;
-    }
-
-    public String getTruststoreFile() {
-        return truststoreFile;
-    }
-
-    public String getTruststorePassword() {
-        return truststorePassword;
-    }
-
-    public String getTruststoreType() {
-        return truststoreType;
-    }
 }
