@@ -44,7 +44,7 @@ import static net.logstash.logback.argument.StructuredArguments.f;
 
 public class DocumentValidatorLOTL {
 
-    private static final Logger logger = LoggerFactory.getLogger(DocumentValidatorLOTL.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DocumentValidatorLOTL.class);
 
     private final String lotlCacheFolder = "lotl-cache";
 
@@ -147,7 +147,7 @@ public class DocumentValidatorLOTL {
     private File tlCacheDirectory() {
         File lotlCache = new File(this.validationProperties.getLotlCacheDir(), lotlCacheFolder);
         if (!lotlCache.exists()) {
-            logger.info("LOTL cache {} doesn't exist.",
+            LOGGER.info("LOTL cache {} doesn't exist.",
                     lotlCache.getAbsolutePath(),
                     f(ServiceLogField
                     .builder()
@@ -165,8 +165,8 @@ public class DocumentValidatorLOTL {
                     this.validationProperties.getOfficialJournalKeystoreType(),
                     this.validationProperties.getOfficialJournalKeystorePassword());
         } catch (Exception e) {
-            throw new DSSException("Unable to load the file " +
-                    this.validationProperties.getOfficialJournalKeystoreFile(), e);
+            throw new DSSException("Unable to load the file "
+                    + this.validationProperties.getOfficialJournalKeystoreFile(), e);
         }
     }
 

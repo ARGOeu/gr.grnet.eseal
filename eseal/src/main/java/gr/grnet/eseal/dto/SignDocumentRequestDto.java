@@ -16,21 +16,28 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 public class SignDocumentRequestDto {
 
-    @NotNull(groups = NotNullSignDocumentRequestFieldsCheckGroup.class, message = "Field username cannot be empty")
+    @NotNull(groups = NotNullSignDocumentRequestFieldsCheckGroup.class,
+            message = "Field username cannot be empty")
     private String username;
 
-    @NotNull(groups = NotNullSignDocumentRequestFieldsCheckGroup.class, message = "Field password cannot be empty")
+    @NotNull(groups = NotNullSignDocumentRequestFieldsCheckGroup.class,
+            message = "Field password cannot be empty")
     private String password;
 
-    @NotNull(groups = NotNullSignDocumentRequestFieldsCheckGroup.class, message = "Field key cannot be empty")
+    @NotNull(groups = NotNullSignDocumentRequestFieldsCheckGroup.class,
+            message = "Field key cannot be empty")
     private String key;
 
-    @NotNull(groups = NotNullSignDocumentRequestFieldsCheckGroup.class, message = "Field toSignDocument cannot be empty")
+    @NotNull(groups = NotNullSignDocumentRequestFieldsCheckGroup.class,
+            message = "Field toSignDocument cannot be empty")
     @JsonProperty("toSignDocument")
     @Valid
     private ToSignDocument toSignDocument;
 
-    public SignDocumentRequestDto(String username, String password, String key, ToSignDocument toSignDocument) {
+    public SignDocumentRequestDto(final String username,
+                                  final String password,
+                                  final String key,
+                                  final ToSignDocument toSignDocument) {
         this.username = username;
         this.password = password;
         this.key = key;
@@ -60,12 +67,14 @@ public class SignDocumentRequestDto {
     @Getter
     @Setter
     @NoArgsConstructor
-     class ToSignDocument{
+     class ToSignDocument {
 
-        @NotNull(groups = NotNullSignDocumentRequestFieldsCheckGroup.class, message = "Field toSignDocument.bytes cannot be empty")
-        String bytes;
+        @NotNull(groups = NotNullSignDocumentRequestFieldsCheckGroup.class,
+                message = "Field toSignDocument.bytes cannot be empty")
+        private String bytes;
 
-        @NotNull(groups = NotNullSignDocumentRequestFieldsCheckGroup.class, message = "Field toSignDocument.name cannot be empty")
-        String name;
+        @NotNull(groups = NotNullSignDocumentRequestFieldsCheckGroup.class,
+                message = "Field toSignDocument.name cannot be empty")
+        private String name;
     }
 }

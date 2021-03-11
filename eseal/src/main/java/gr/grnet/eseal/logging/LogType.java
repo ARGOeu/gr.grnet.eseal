@@ -10,7 +10,7 @@ public enum LogType {
 
     private final String type;
 
-     LogType(String type){
+     LogType(String type) {
         this.type = type;
     }
 

@@ -2,16 +2,22 @@ package gr.grnet.eseal.utils;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
 
-public class Utils {
+public final class Utils {
+
+
+    private Utils() {
+        //not called
+    }
 
 
     /**
-     * {@link #formatTimePeriod(long)} accepts the beginning (unix time) of period and formats its duration in seconds, minutes, hours and days
+     * {@link #formatTimePeriod(long)} accepts the beginning (unix time)
+     * of period and formats its duration in seconds, minutes, hours and days
      *
      * @param start
      * @return
      */
-    public static String formatTimePeriod(long start) {
+    public static String formatTimePeriod(final long start) {
         long currentTime = System.currentTimeMillis();
         long timePeriod = currentTime - start;
         String timePeriodToString = DurationFormatUtils.formatDuration(timePeriod, "d") + "d";

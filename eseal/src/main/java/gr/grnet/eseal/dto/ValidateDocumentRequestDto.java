@@ -18,7 +18,8 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 public class ValidateDocumentRequestDto {
 
-    @NotNull(groups = NotEmptyValidateDocumentRequestFieldsCheckGroup.class, message = "Field signedDocument cannot be empty")
+    @NotNull(groups = NotEmptyValidateDocumentRequestFieldsCheckGroup.class,
+            message = "Field signedDocument cannot be empty")
     @JsonProperty("signedDocument")
     @Valid
     private SignedDocument signedDocument;
@@ -28,10 +29,12 @@ public class ValidateDocumentRequestDto {
     @NoArgsConstructor
     public class SignedDocument {
 
-        @NotEmpty(groups = NotEmptyValidateDocumentRequestFieldsCheckGroup.class, message = "Field signedDocument.bytes cannot be empty")
-        String bytes;
+        @NotEmpty(groups = NotEmptyValidateDocumentRequestFieldsCheckGroup.class,
+                message = "Field signedDocument.bytes cannot be empty")
+        private String bytes;
 
-        @NotEmpty(groups = NotEmptyValidateDocumentRequestFieldsCheckGroup.class, message = "Field signedDocument.name cannot be empty")
-        String name;
+        @NotEmpty(groups = NotEmptyValidateDocumentRequestFieldsCheckGroup.class,
+                message = "Field signedDocument.name cannot be empty")
+        private String name;
     }
 }

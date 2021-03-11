@@ -30,11 +30,14 @@ public class ObjectMapperWithJaxbAndDefaultSupportBean {
                 new JaxbAnnotationIntrospector(TypeFactory.defaultInstance());
 
         // initialize the default jackson annotation introspector
-        JacksonAnnotationIntrospector  jacksonAnnotationIntrospector =  new JacksonAnnotationIntrospector();
+        JacksonAnnotationIntrospector  jacksonAnnotationIntrospector =
+                new JacksonAnnotationIntrospector();
 
-        // set up the annotation introspector pair with primary being the default jackson introspector
+        // set up the annotation introspector pair with primary
+        // being the default jackson introspector
         AnnotationIntrospectorPair annotationIntrospectorPair =
-                new AnnotationIntrospectorPair(jacksonAnnotationIntrospector, jaxbAnnotationIntrospector);
+                new AnnotationIntrospectorPair(jacksonAnnotationIntrospector,
+                        jaxbAnnotationIntrospector);
 
         objectMapper.setAnnotationIntrospector(annotationIntrospectorPair);
 

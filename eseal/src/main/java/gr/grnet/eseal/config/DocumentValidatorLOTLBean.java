@@ -13,7 +13,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
 /**
- * DocumentValidatorLOTLBean is a {@link Bean} responsible for the exposure of the DocumentValidatorLOTL that will be
+ * DocumentValidatorLOTLBean is a {@link Bean} responsible for
+ * the exposure of the DocumentValidatorLOTL that will be
  * used by the validation service
  */
 @Setter
@@ -22,7 +23,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 @EnableScheduling
 public class DocumentValidatorLOTLBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(DocumentValidatorLOTLBean.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DocumentValidatorLOTLBean.class);
 
 
     private DocumentValidatorLOTL lotlValidator;
@@ -48,7 +49,7 @@ public class DocumentValidatorLOTLBean {
     }
 
     @Bean
-    public DocumentValidatorLOTL lotlValidator(){
+    public DocumentValidatorLOTL lotlValidator() {
         return this.lotlValidator;
     }
 
@@ -58,7 +59,7 @@ public class DocumentValidatorLOTLBean {
     )
     public void refreshLOTL() {
         if (this.lotlRefreshEnable) {
-            logger.info("Running online refresh for the " + refreshCounter + " time...");
+            LOGGER.info("Running online refresh for the " + refreshCounter + " time...");
             this.lotlValidator().onlineLOTLRefresh();
             refreshCounter++;
         }
