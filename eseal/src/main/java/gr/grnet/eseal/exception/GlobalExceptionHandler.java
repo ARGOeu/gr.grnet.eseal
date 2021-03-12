@@ -14,14 +14,18 @@ public class GlobalExceptionHandler {
     // Handle errors regrading the validation of request fields
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<APIError> handleWrongInput(MethodArgumentNotValidException apiEx, WebRequest request) {
-        APIError errorResponse = new APIError(HttpStatus.BAD_REQUEST.value(), apiEx.getFieldError().getDefaultMessage(), HttpStatus.BAD_REQUEST);
+        APIError errorResponse = new APIError(HttpStatus.BAD_REQUEST.value(),
+                apiEx.getFieldError().getDefaultMessage(),
+                HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     // Handle errors regarding malformed json in the request body
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<APIError> handleMalformedJSONException(HttpMessageNotReadableException apiEx, WebRequest request) {
-        APIError errorResponse = new APIError(HttpStatus.BAD_REQUEST.value(),"Malformed JSON body", HttpStatus.BAD_REQUEST);
+    public ResponseEntity<APIError> handleMalformedJSONException(HttpMessageNotReadableException apiEx,
+                                                                 WebRequest request) {
+        APIError errorResponse = new APIError(HttpStatus.BAD_REQUEST.value(), "Malformed JSON body",
+                HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
@@ -35,7 +39,8 @@ public class GlobalExceptionHandler {
     // Generic handler for any request that isn't being handled by the rest of the handlers
     @ExceptionHandler(Exception.class)
     public ResponseEntity<APIError> handleGenericException(Exception apiEx, WebRequest request) {
-        APIError errorResponse = new APIError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        APIError errorResponse = new APIError(HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

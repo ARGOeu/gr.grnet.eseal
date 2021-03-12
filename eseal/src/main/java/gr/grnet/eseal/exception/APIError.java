@@ -23,7 +23,7 @@ public class APIError {
 
     @Getter
     @Setter
-    public class APIErrorBody {
+    public final class APIErrorBody {
         private int code;
         private String message;
         private HttpStatus status;

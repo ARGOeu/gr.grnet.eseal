@@ -23,7 +23,8 @@ public class DocumentSignController {
     }
 
     @PostMapping("/remoteSignDocument")
-    public SignDocumentResponseDto signDocument(@Validated(NotNullSignDocumentRequestFieldsCheckGroup.class) @RequestBody SignDocumentRequestDto signDocumentRequest) {
+    public SignDocumentResponseDto signDocument(@Validated(NotNullSignDocumentRequestFieldsCheckGroup.class)
+                                                    @RequestBody SignDocumentRequestDto signDocumentRequest) {
 
             return new SignDocumentResponseDto(
                     this.signDocumentService.signDocument(

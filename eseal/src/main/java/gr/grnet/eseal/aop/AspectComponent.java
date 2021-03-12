@@ -33,7 +33,7 @@ import static net.logstash.logback.argument.StructuredArguments.f;
  */
 @Aspect
 @Component
-@EnableAspectJAutoProxy(proxyTargetClass=true)
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 public class AspectComponent {
     @Autowired
     private HttpServletRequest request;
@@ -74,22 +74,20 @@ public class AspectComponent {
     }
 
     @Pointcut("within(@org.springframework.web.bind.annotation.ControllerAdvice *)")
-    public void beanAnnotatedWithControllerAdvice() {}
+    public void beanAnnotatedWithControllerAdvice() { }
 
     @Pointcut("execution(public * *(..))")
-    public void publicMethod() {}
+    public void publicMethod() { }
 
     @Pointcut("publicMethod() && beanAnnotatedWithControllerAdvice()")
-    public void publicMethodInsideAClassMarkedWithAtBeanAnnotatedWithControllerAdvice() {
-
-    }
+    public void publicMethodInsideAClassMarkedWithAtBeanAnnotatedWithControllerAdvice() { }
 
 
-    @AfterReturning(pointcut = "publicMethodInsideAClassMarkedWithAtBeanAnnotatedWithControllerAdvice()", returning="response")
-    public void logAfterReturningException(JoinPoint joinPoint, Object response) throws Throwable
-    {
+    @AfterReturning(pointcut = "publicMethodInsideAClassMarkedWithAtBeanAnnotatedWithControllerAdvice()",
+            returning = "response")
+    public void logAfterReturningException(JoinPoint joinPoint, Object response) throws Throwable {
 
-        if(Objects.isNull(MDC.get("request_id"))){
+        if (Objects.isNull(MDC.get("request_id"))) {
             MDC.put("request_id", String.valueOf(UUID.randomUUID()));
         }
 
@@ -99,22 +97,25 @@ public class AspectComponent {
                 .builder()
                 .path(request.getServletPath())
                 .method(request.getMethod())
-                .processingTime(Utils.formatTimePeriod(Optional.ofNullable((Long) request.getAttribute("start_time")).orElse(System.currentTimeMillis())))
+                .processingTime(Utils.formatTimePeriod(Optional
+                        .ofNullable((Long) request.getAttribute("start_time"))
+                        .orElse(System.currentTimeMillis())))
                 .status(error.getStatusCode().toString())
                 .build();
 
-        getLogger(joinPoint).error(Optional.ofNullable(error.getBody().getApiErrorBody().getMessage()).orElse("Internal server error"), f(field));
+        getLogger(joinPoint).error(Optional
+                .ofNullable(error.getBody().getApiErrorBody().getMessage())
+                .orElse("Internal server error"), f(field));
 
         MDC.remove("request_id");
     }
 
 
-    private Logger getLogger(JoinPoint jp){
+    private Logger getLogger(JoinPoint jp) {
 
         Class clazz = jp.getTarget().getClass();
         return  LoggerFactory.getLogger(clazz);
     }
-
 
 }
 

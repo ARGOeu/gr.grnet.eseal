@@ -35,7 +35,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.security.*;
+import java.security.SecureRandom;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
@@ -43,27 +47,32 @@ import static net.logstash.logback.argument.StructuredArguments.f;
 
 
 /**
- * RemoteProviderHttpEsealClient implements a {@link RemoteHttpEsealClient} that allows the usage of a provider's remote http
- * rest api in order to access e-seals and sign documents
+ * RemoteProviderHttpEsealClient implements a {@link RemoteHttpEsealClient} that allows the usage of a provider's
+ * remote http rest api in order to access e-seals and sign documents
  */
-public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
+public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(RemoteProviderHttpEsealClient.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RemoteProviderHttpEsealClient.class);
+    private static final String SIGNING_PATH = "dsa/v1/sign";
+    private static final String PROTOCOL = "https";
+    private static final int SOCKET_TIMEOUT = 30000;
+    private static final int CONNECTION_TIMEOUT = 30000;
+    private static final int CONNECTION_REQUEST_TIMEOUT = 30000;
 
-    private CloseableHttpClient closeableHttpClient;
 
-    private String signingURL;
 
-    private final String SIGNING_PATH = "dsa/v1/sign";
+    private final CloseableHttpClient closeableHttpClient;
 
-    private final String PROTOCOL = "https";
+    private final String signingURL;
 
-    private RemoteProviderProperties remoteProviderProperties;
+    private final RemoteProviderProperties remoteProviderProperties;
 
     public RemoteProviderHttpEsealClient(RemoteProviderProperties remoteProviderProperties) throws
-            IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException{
+            IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
         this.remoteProviderProperties = remoteProviderProperties;
-        this.signingURL  = String.format("%s://%s/%s", this.PROTOCOL, remoteProviderProperties.getEndpoint(), this.SIGNING_PATH);
+        this.signingURL  = String.format("%s://%s/%s",
+                PROTOCOL, remoteProviderProperties.getEndpoint(),
+                SIGNING_PATH);
         this.closeableHttpClient = buildHttpClient();
     }
 
@@ -80,12 +89,12 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
                     return this.doSign(document, username, password, key);
                 } catch (InvalidTOTPException | InternalServerErrorException ie) {
                     retryCount++;
-                    logger.warn("Encountered an exception while trying to sign",
+                    LOGGER.warn("Encountered an exception while trying to sign",
                             f(ServiceLogField
                                     .builder()
                                     .details(ie.getMessage())
                                     .build()));
-                    logger.info("Retrying for the {} time in {} seconds", retryCount,
+                    LOGGER.info("Retrying for the {} time in {} seconds", retryCount,
                             this.remoteProviderProperties.getRetryInterval(),
                             f(ServiceLogField
                             .builder()
@@ -100,7 +109,7 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
         }
         // if the retry mechanism has been enabled, this is the last retry
         // otherwise is the one and only call to the remote signing service
-        return this.doSign(document, username,password,key);
+        return this.doSign(document, username, password, key);
     }
 
     /**
@@ -125,15 +134,15 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
             //Revisit this code block as it has been provided as a temporary solution for the TOTP
             //timeout possibility and we need to re-evaluate it.
             long timePeriodRemainingSeconds = TOTP.getTimePeriodRemainingSeconds();
-            if (timePeriodRemainingSeconds <= this.remoteProviderProperties.getTotpWaitForRefreshSeconds() ) {
-                logger.info("TOTP remaining time period is below/at {} seconds, {} seconds.Waiting for expiration.",
+            if (timePeriodRemainingSeconds <= this.remoteProviderProperties.getTotpWaitForRefreshSeconds()) {
+                LOGGER.info("TOTP remaining time period is below/at {} seconds, {} seconds.Waiting for expiration.",
                         this.remoteProviderProperties.getTotpWaitForRefreshSeconds(),
                         timePeriodRemainingSeconds,
                         f(ServiceLogField
                                 .builder()
                                 .build()));
                 Thread.sleep(timePeriodRemainingSeconds * 1000);
-                logger.info("Generating new TOTP",
+                LOGGER.info("Generating new TOTP",
                         f(ServiceLogField
                         .builder()
                         .build()));
@@ -141,7 +150,8 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
             }
 
             // attempt to sign the document with remote provider
-            RemoteProviderSignDocumentResponse remoteProviderSignDocumentResponse = this.doPost(remoteProviderSignDocumentRequest);
+            RemoteProviderSignDocumentResponse remoteProviderSignDocumentResponse =
+                    this.doPost(remoteProviderSignDocumentRequest);
 
             String executionTime = Utils.formatTimePeriod(start);
 
@@ -151,7 +161,7 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
                 // check if the user could not login
                 if (remoteProviderSignDocumentResponse.hasFailedToLogin()) {
 
-                    logger.error("Failed to login",
+                    LOGGER.error("Failed to login",
                             f(BackEndLogField
                                     .builder()
                                     .backendHost(this.remoteProviderProperties.getEndpoint())
@@ -166,7 +176,7 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
                 // check if the totp was wrong or expired
                 if (remoteProviderSignDocumentResponse.hasInvalidTOTPKey()) {
 
-                    logger.error("Invalid TOTP",
+                    LOGGER.error("Invalid TOTP",
                             f(BackEndLogField
                                     .builder()
                                     .backendHost(this.remoteProviderProperties.getEndpoint())
@@ -180,7 +190,7 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
 
                 // if any other error occurs
 
-                logger.error("Error response from provider",
+                LOGGER.error("Error response from provider",
                         f(BackEndLogField
                                 .builder()
                                 .backendHost(this.remoteProviderProperties.getEndpoint())
@@ -193,7 +203,7 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
             }
 
             // returned the signed document
-            logger.info("Successful document signing",
+            LOGGER.info("Successful document signing",
                     f(BackEndLogField
                             .builder()
                             .backendHost(this.remoteProviderProperties.getEndpoint())
@@ -202,18 +212,16 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
                     ));
 
             return remoteProviderSignDocumentResponse.getSignedFileData();
-        }
-        catch (CodeGenerationException e) {
-            logger.error("TOTP generator has encountered an error",
+        } catch (CodeGenerationException e) {
+            LOGGER.error("TOTP generator has encountered an error",
                     f(ServiceLogField
                             .builder()
                             .details(e.getMessage())
                             .build()));
             throw new InternalServerErrorException("TOTP generator has encountered an error");
-        }
-        catch (IOException ioe) {
+        } catch (IOException ioe) {
 
-            logger.error("Error communicating with provider's backend",
+            LOGGER.error("Error communicating with provider's backend",
                     f(BackEndLogField
                             .builder()
                             .backendHost(this.remoteProviderProperties.getEndpoint())
@@ -222,9 +230,8 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
                             .build()
                     ));
             throw new InternalServerErrorException("Signing backend unavailable");
-        }
-        catch (InterruptedException ie) {
-            logger.error("Internal thread error",
+        } catch (InterruptedException ie) {
+            LOGGER.error("Internal thread error",
                     f(ServiceLogField
                             .builder()
                             .details(ie.getMessage())
@@ -233,8 +240,8 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
         }
     }
 
-    private RemoteProviderSignDocumentResponse doPost(RemoteProviderSignDocumentRequest remoteProviderSignDocumentRequest) throws
-    IOException{
+    private RemoteProviderSignDocumentResponse doPost(RemoteProviderSignDocumentRequest
+                                                              remoteProviderSignDocumentRequest) throws IOException {
 
         StringEntity postBody = new StringEntity(remoteProviderSignDocumentRequest.toJSON());
         postBody.setContentType("application/json");
@@ -248,16 +255,16 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
         // Read the response
         String line;
         BufferedReader br = new BufferedReader(new InputStreamReader(entity.getContent()));
-        StringBuilder current_msg = new StringBuilder();
+        StringBuilder currentMsg = new StringBuilder();
         while ((line = br.readLine()) != null) {
-            current_msg.append(line);
+            currentMsg.append(line);
         }
 
         // Make sure that the interaction with the service has closed
         EntityUtils.consume(entity);
         response.close();
         ObjectMapper objectMapper = new ObjectMapper();
-        return  objectMapper.readValue(current_msg.toString(),RemoteProviderSignDocumentResponse.class);
+        return  objectMapper.readValue(currentMsg.toString(), RemoteProviderSignDocumentResponse.class);
     }
 
 
@@ -266,12 +273,12 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
 
         // socket config
         SocketConfig socketCfg = SocketConfig.custom().
-                setSoTimeout(30000).
+                setSoTimeout(SOCKET_TIMEOUT).
                 build();
 
         RequestConfig reqCfg = RequestConfig.custom().
-                setConnectTimeout(30000).
-                setConnectionRequestTimeout(30000).
+                setConnectTimeout(CONNECTION_TIMEOUT).
+                setConnectionRequestTimeout(CONNECTION_REQUEST_TIMEOUT).
                 build();
 
         // ssl context
@@ -291,7 +298,7 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
                 public void checkServerTrusted(X509Certificate[] certs,
                                                String authType) {
                 }
-            }}, new SecureRandom());
+            } }, new SecureRandom());
         } else {
 
             // set up a trust manager with the appropriate client truststore
@@ -316,7 +323,7 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
          * Create a SSL context with a trust manager that uses the
          * client truststore.
          */
-        sslContext.init(null, theTrustManagerFactory.getTrustManagers(),new SecureRandom());
+        sslContext.init(null, theTrustManagerFactory.getTrustManagers(), new SecureRandom());
         }
 
         // build the client
@@ -354,7 +361,7 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient{
         @JsonProperty("Appearance")
         private int appearance = 15;
 
-        private String toJSON() throws JsonProcessingException{
+        private String toJSON() throws JsonProcessingException {
             ObjectMapper objectMapper = new ObjectMapper();
             return objectMapper.writeValueAsString(this);
         }
