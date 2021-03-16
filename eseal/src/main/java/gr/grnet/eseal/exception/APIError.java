@@ -23,13 +23,11 @@ public class APIError {
 
     @Getter
     @Setter
+    @NoArgsConstructor
     public final class APIErrorBody {
         private int code;
         private String message;
         private HttpStatus status;
-
-        private APIErrorBody() {
-        }
 
         private APIErrorBody(int code, String message, HttpStatus status) {
             this.code = code;

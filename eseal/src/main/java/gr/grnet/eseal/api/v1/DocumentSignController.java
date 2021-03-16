@@ -3,7 +3,7 @@ package gr.grnet.eseal.api.v1;
 import gr.grnet.eseal.dto.SignDocumentRequestDto;
 import gr.grnet.eseal.dto.SignDocumentResponseDto;
 import gr.grnet.eseal.service.SignDocumentService;
-import gr.grnet.eseal.utils.NotNullSignDocumentRequestFieldsCheckGroup;
+import gr.grnet.eseal.utils.NotEmptySignDocumentRequestFieldsCheckGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,12 +23,12 @@ public class DocumentSignController {
     }
 
     @PostMapping("/remoteSignDocument")
-    public SignDocumentResponseDto signDocument(@Validated(NotNullSignDocumentRequestFieldsCheckGroup.class)
+    public SignDocumentResponseDto signDocument(@Validated(NotEmptySignDocumentRequestFieldsCheckGroup.class)
                                                     @RequestBody SignDocumentRequestDto signDocumentRequest) {
 
             return new SignDocumentResponseDto(
                     this.signDocumentService.signDocument(
-                            signDocumentRequest.getToSignDocumentB64String(),
+                            signDocumentRequest.getToSignDocument().getBytes(),
                             signDocumentRequest.getUsername(),
                             signDocumentRequest.getPassword(),
                             signDocumentRequest.getKey()
