@@ -3,6 +3,7 @@ package gr.grnet.eseal.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -25,6 +26,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<APIError> handleMalformedJSONException(HttpMessageNotReadableException apiEx,
                                                                  WebRequest request) {
         APIError errorResponse = new APIError(HttpStatus.BAD_REQUEST.value(), "Malformed JSON body",
+                HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    // Handle errors regarding the media types that are not supported
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<APIError> handleMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException apiEx,
+                                                                         WebRequest request) {
+        APIError errorResponse = new APIError(HttpStatus.BAD_REQUEST.value(),
+                apiEx.getMessage() + ". Using Content Type 'application/json' instead.",
                 HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
