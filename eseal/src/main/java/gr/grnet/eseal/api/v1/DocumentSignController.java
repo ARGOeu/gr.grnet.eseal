@@ -15,23 +15,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/signing/")
 public class DocumentSignController {
 
-    private final SignDocumentService signDocumentService;
+  private final SignDocumentService signDocumentService;
 
-    @Autowired
-    public DocumentSignController(SignDocumentService signDocumentService) {
-        this.signDocumentService = signDocumentService;
-    }
+  @Autowired
+  public DocumentSignController(SignDocumentService signDocumentService) {
+    this.signDocumentService = signDocumentService;
+  }
 
-    @PostMapping("/remoteSignDocument")
-    public SignDocumentResponseDto signDocument(@Validated(NotNullSignDocumentRequestFieldsCheckGroup.class)
-                                                    @RequestBody SignDocumentRequestDto signDocumentRequest) {
+  @PostMapping("/remoteSignDocument")
+  public SignDocumentResponseDto signDocument(
+      @Validated(NotNullSignDocumentRequestFieldsCheckGroup.class) @RequestBody
+          SignDocumentRequestDto signDocumentRequest) {
 
-            return new SignDocumentResponseDto(
-                    this.signDocumentService.signDocument(
-                            signDocumentRequest.getToSignDocumentB64String(),
-                            signDocumentRequest.getUsername(),
-                            signDocumentRequest.getPassword(),
-                            signDocumentRequest.getKey()
-                    ));
-    }
+    return new SignDocumentResponseDto(
+        this.signDocumentService.signDocument(
+            signDocumentRequest.getToSignDocumentB64String(),
+            signDocumentRequest.getUsername(),
+            signDocumentRequest.getPassword(),
+            signDocumentRequest.getKey()));
+  }
 }

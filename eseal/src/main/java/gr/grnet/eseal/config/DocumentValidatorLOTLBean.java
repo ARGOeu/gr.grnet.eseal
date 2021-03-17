@@ -13,9 +13,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
 /**
- * DocumentValidatorLOTLBean is a {@link Bean} responsible for
- * the exposure of the DocumentValidatorLOTL that will be
- * used by the validation service
+ * DocumentValidatorLOTLBean is a {@link Bean} responsible for the exposure of the
+ * DocumentValidatorLOTL that will be used by the validation service
  */
 @Setter
 @Getter
@@ -23,45 +22,41 @@ import org.springframework.scheduling.annotation.Scheduled;
 @EnableScheduling
 public class DocumentValidatorLOTLBean {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DocumentValidatorLOTLBean.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DocumentValidatorLOTLBean.class);
 
+  private DocumentValidatorLOTL lotlValidator;
 
-    private DocumentValidatorLOTL lotlValidator;
+  private int refreshCounter = 1;
 
-    private int refreshCounter = 1;
+  /** Enable online refresh on intervals */
+  @Value("${eseal.validation.lotl.refresh.enable}")
+  private Boolean lotlRefreshEnable;
 
-    /**
-     * Enable online refresh on intervals
-     */
-    @Value("${eseal.validation.lotl.refresh.enable}")
-    private Boolean lotlRefreshEnable;
+  @Value("${eseal.validation.lotl.refresh.initial.delay}")
+  private int refreshInitialDelay;
 
-    @Value("${eseal.validation.lotl.refresh.initial.delay}")
-    private int refreshInitialDelay;
+  @Value("${eseal.validation.lotl.refresh.interval}")
+  private int refreshInterval;
 
-    @Value("${eseal.validation.lotl.refresh.interval}")
-    private int refreshInterval;
+  @Autowired
+  public DocumentValidatorLOTLBean(ValidationProperties validationProperties) {
+    this.lotlValidator = new DocumentValidatorLOTL(validationProperties);
+    this.lotlValidator.initialize();
+  }
 
-    @Autowired
-    public DocumentValidatorLOTLBean(ValidationProperties validationProperties) {
-        this.lotlValidator = new DocumentValidatorLOTL(validationProperties);
-        this.lotlValidator.initialize();
+  @Bean
+  public DocumentValidatorLOTL lotlValidator() {
+    return this.lotlValidator;
+  }
+
+  @Scheduled(
+      initialDelayString = "${eseal.validation.lotl.refresh.initial.delay}",
+      fixedDelayString = "${eseal.validation.lotl.refresh.interval}")
+  public void refreshLOTL() {
+    if (this.lotlRefreshEnable) {
+      LOGGER.info("Running online refresh for the " + refreshCounter + " time...");
+      this.lotlValidator().onlineLOTLRefresh();
+      refreshCounter++;
     }
-
-    @Bean
-    public DocumentValidatorLOTL lotlValidator() {
-        return this.lotlValidator;
-    }
-
-    @Scheduled(
-            initialDelayString = "${eseal.validation.lotl.refresh.initial.delay}",
-            fixedDelayString = "${eseal.validation.lotl.refresh.interval}"
-    )
-    public void refreshLOTL() {
-        if (this.lotlRefreshEnable) {
-            LOGGER.info("Running online refresh for the " + refreshCounter + " time...");
-            this.lotlValidator().onlineLOTLRefresh();
-            refreshCounter++;
-        }
-    }
+  }
 }

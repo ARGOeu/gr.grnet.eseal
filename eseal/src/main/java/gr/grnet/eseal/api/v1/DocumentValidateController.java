@@ -15,19 +15,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/validation/")
 public class DocumentValidateController {
 
-    private final ValidateDocumentService validateDocumentService;
+  private final ValidateDocumentService validateDocumentService;
 
-    @Autowired
-    public DocumentValidateController(ValidateDocumentService validateDocumentService) {
-        this.validateDocumentService = validateDocumentService;
-    }
+  @Autowired
+  public DocumentValidateController(ValidateDocumentService validateDocumentService) {
+    this.validateDocumentService = validateDocumentService;
+  }
 
-    @PostMapping("/validateDocument")
-    public WSReportsDTO validateDocument(@Validated(NotEmptyValidateDocumentRequestFieldsCheckGroup.class)
-                                         @RequestBody ValidateDocumentRequestDto validateDocumentRequestDto) {
+  @PostMapping("/validateDocument")
+  public WSReportsDTO validateDocument(
+      @Validated(NotEmptyValidateDocumentRequestFieldsCheckGroup.class) @RequestBody
+          ValidateDocumentRequestDto validateDocumentRequestDto) {
 
-        return this.validateDocumentService.validateDocument(
-                validateDocumentRequestDto.getSignedDocument().getBytes(),
-                validateDocumentRequestDto.getSignedDocument().getName());
-    }
+    return this.validateDocumentService.validateDocument(
+        validateDocumentRequestDto.getSignedDocument().getBytes(),
+        validateDocumentRequestDto.getSignedDocument().getName());
+  }
 }

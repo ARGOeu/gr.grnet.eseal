@@ -7,15 +7,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class SignDocumentService {
 
-    private RemoteHttpEsealClient remoteHttpEsealClient;
+  private RemoteHttpEsealClient remoteHttpEsealClient;
 
-    @Autowired
-    public SignDocumentService(RemoteHttpEsealClient remoteHttpEsealClient) {
-        this.remoteHttpEsealClient = remoteHttpEsealClient;
-    }
+  @Autowired
+  public SignDocumentService(RemoteHttpEsealClient remoteHttpEsealClient) {
+    this.remoteHttpEsealClient = remoteHttpEsealClient;
+  }
 
-    public String signDocument(String document, String username, String password, String key) {
-        return this.remoteHttpEsealClient.sign(document, username, password, key);
-    }
-
+  public String signDocument(String document, String username, String password, String key) {
+    return this.remoteHttpEsealClient.sign(document, username, password, key);
+  }
 }
