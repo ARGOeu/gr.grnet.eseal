@@ -1,4 +1,5 @@
 package gr.grnet.eseal.exception;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,25 +15,25 @@ import org.springframework.http.HttpStatus;
 @NoArgsConstructor
 public class APIError {
 
-    @JsonProperty("error")
-    private APIErrorBody apiErrorBody;
+  @JsonProperty("error")
+  private APIErrorBody apiErrorBody;
 
-    APIError(int code, String message, HttpStatus status) {
-        this.apiErrorBody =  new APIErrorBody(code, message, status);
+  APIError(int code, String message, HttpStatus status) {
+    this.apiErrorBody = new APIErrorBody(code, message, status);
+  }
+
+  @Getter
+  @Setter
+  @NoArgsConstructor
+  public final class APIErrorBody {
+    private int code;
+    private String message;
+    private HttpStatus status;
+
+    private APIErrorBody(int code, String message, HttpStatus status) {
+      this.code = code;
+      this.message = message;
+      this.status = status;
     }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    public final class APIErrorBody {
-        private int code;
-        private String message;
-        private HttpStatus status;
-
-        private APIErrorBody(int code, String message, HttpStatus status) {
-            this.code = code;
-            this.message = message;
-            this.status = status;
-        }
-    }
+  }
 }
