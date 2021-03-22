@@ -12,24 +12,20 @@ import org.springframework.stereotype.Service;
 @Service
 public class ValidateDocumentService {
 
-    private RemoteDocumentValidationService remoteDocumentValidationService;
+  private RemoteDocumentValidationService remoteDocumentValidationService;
 
-    @Autowired
-    public ValidateDocumentService(DocumentValidatorLOTL lotlValidator) {
-        this.remoteDocumentValidationService = new RemoteDocumentValidationService();
-        this.remoteDocumentValidationService.setVerifier(lotlValidator.getCertificateVerifier());
-    }
+  @Autowired
+  public ValidateDocumentService(DocumentValidatorLOTL lotlValidator) {
+    this.remoteDocumentValidationService = new RemoteDocumentValidationService();
+    this.remoteDocumentValidationService.setVerifier(lotlValidator.getCertificateVerifier());
+  }
 
-    public WSReportsDTO validateDocument(String documentBytes, String documentName) {
+  public WSReportsDTO validateDocument(String documentBytes, String documentName) {
 
-        DataToValidateDTO dataToValidateDTO =  new DataToValidateDTO();
+    DataToValidateDTO dataToValidateDTO = new DataToValidateDTO();
 
-        dataToValidateDTO.setSignedDocument(
-                new RemoteDocument(
-                        Utils.fromBase64(documentBytes),
-                        documentName
-                )
-        );
-            return this.remoteDocumentValidationService.validateDocument(dataToValidateDTO);
-    }
+    dataToValidateDTO.setSignedDocument(
+        new RemoteDocument(Utils.fromBase64(documentBytes), documentName));
+    return this.remoteDocumentValidationService.validateDocument(dataToValidateDTO);
+  }
 }
