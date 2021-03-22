@@ -106,6 +106,24 @@ class RemoteProviderHttpEsealClientTests {
   }
 
   @Test
+  void TestDocumentSignUserIsLocked() throws Exception {
+
+    String errMessage = "Failed to Logon, Error (0X900201E2)-The user is locked and cannot logon.";
+
+    CloseableHttpResponse mockResponse =
+        buildMockUnSuccessfulResponse(errMessage, HttpStatus.SC_OK);
+
+    when(httpClient.execute(any())).thenReturn(mockResponse);
+
+    InternalServerErrorException exc =
+        Assertions.assertThrows(
+            InternalServerErrorException.class,
+            () -> this.remoteProviderHttpEsealClient.sign("doc", "u", "p", "k"));
+
+    assertThat("The user is locked and cannot logon").isEqualTo(exc.getMessage());
+  }
+
+  @Test
   void TestDocumentSignGenericProviderError() throws Exception {
 
     String errMessage = "generic error";
