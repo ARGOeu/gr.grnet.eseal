@@ -124,6 +124,25 @@ class RemoteProviderHttpEsealClientTests {
   }
 
   @Test
+  void TestDocumentSignTimeStampingServiceProblem() throws Exception {
+
+    String errMessage =
+        "Failed to Sign, Error (0X90030373)-Connection to Time Stamping service problem.";
+
+    CloseableHttpResponse mockResponse =
+        buildMockUnSuccessfulResponse(errMessage, HttpStatus.SC_OK);
+
+    when(httpClient.execute(any())).thenReturn(mockResponse);
+
+    InternalServerErrorException exc =
+        Assertions.assertThrows(
+            InternalServerErrorException.class,
+            () -> this.remoteProviderHttpEsealClient.sign("doc", "u", "p", "k"));
+
+    assertThat("Connection to Time Stamping service problem").isEqualTo(exc.getMessage());
+  }
+
+  @Test
   void TestDocumentSignGenericProviderError() throws Exception {
 
     String errMessage = "generic error";
