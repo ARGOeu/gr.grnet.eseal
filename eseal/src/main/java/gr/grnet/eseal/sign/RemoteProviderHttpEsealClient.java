@@ -25,6 +25,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.function.Predicate;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -154,48 +155,37 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient {
       // check if the signing was successful
       if (!remoteProviderSignDocumentResponse.isSuccessful()) {
 
-        // check if the user could not login
-        if (remoteProviderSignDocumentResponse.hasFailedToLogin()) {
+        BackEndLogField field =
+            BackEndLogField.builder()
+                .backendHost(this.remoteProviderProperties.getEndpoint())
+                .details(remoteProviderSignDocumentResponse.getErrorData().getMessage())
+                .executionTime(executionTime)
+                .build();
 
-          LOGGER.error(
-              "Failed to login",
-              f(
-                  BackEndLogField.builder()
-                      .backendHost(this.remoteProviderProperties.getEndpoint())
-                      .details(remoteProviderSignDocumentResponse.getErrorData().getMessage())
-                      .executionTime(executionTime)
-                      .build()));
-
-          throw new UnprocessableEntityException("Wrong user credentials");
-        }
-
-        // check if the totp was wrong or expired
-        if (remoteProviderSignDocumentResponse.hasInvalidTOTPKey()) {
-
-          LOGGER.error(
-              "Invalid TOTP",
-              f(
-                  BackEndLogField.builder()
-                      .backendHost(this.remoteProviderProperties.getEndpoint())
-                      .details(remoteProviderSignDocumentResponse.getErrorData().getMessage())
-                      .executionTime(executionTime)
-                      .build()));
-
-          throw new InvalidTOTPException();
-        }
-
-        // if any other error occurs
-
-        LOGGER.error(
-            "Error response from provider",
-            f(
-                BackEndLogField.builder()
-                    .backendHost(this.remoteProviderProperties.getEndpoint())
-                    .details(remoteProviderSignDocumentResponse.getErrorData().getMessage())
-                    .executionTime(executionTime)
-                    .build()));
-
-        throw new InternalServerErrorException("Error with signing backend");
+        signingErrorResponsePredicate(
+                "The user is locked",
+                field,
+                (r) -> r.getErrorData().getMessage().contains("The user is locked"),
+                new InternalServerErrorException("The user is locked and cannot logon"))
+            .or(
+                signingErrorResponsePredicate(
+                    "Failed to login",
+                    field,
+                    (r) -> r.getErrorData().getMessage().contains("Failed to Logon"),
+                    new UnprocessableEntityException("Wrong user credentials")))
+            .or(
+                signingErrorResponsePredicate(
+                    "Invalid TOTP",
+                    field,
+                    (r) -> r.getErrorData().getMessage().contains("Failed to Sign"),
+                    new InvalidTOTPException()))
+            .or(
+                signingErrorResponsePredicate(
+                    "Error response from provider",
+                    field,
+                    (r) -> true,
+                    new InternalServerErrorException("Error with signing backend")))
+            .test(remoteProviderSignDocumentResponse);
       }
 
       // returned the signed document
@@ -326,6 +316,21 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient {
         .build();
   }
 
+  private Predicate<RemoteProviderSignDocumentResponse> signingErrorResponsePredicate(
+      String message,
+      BackEndLogField field,
+      Predicate<? super RemoteProviderSignDocumentResponse> predicate,
+      RuntimeException exc) {
+    return t -> {
+      boolean r = predicate.test(t);
+      if (r) {
+        LOGGER.error(message, f(field));
+        throw exc;
+      }
+      return r;
+    };
+  }
+
   @Setter
   @Getter
   @NoArgsConstructor
@@ -388,14 +393,6 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient {
 
     private String getSignedFileData() {
       return this.data.signedFileData;
-    }
-
-    private Boolean hasFailedToLogin() {
-      return this.errorData.message.contains("Failed to Logon");
-    }
-
-    private Boolean hasInvalidTOTPKey() {
-      return this.errorData.message.contains("Failed to Sign");
     }
   }
 
