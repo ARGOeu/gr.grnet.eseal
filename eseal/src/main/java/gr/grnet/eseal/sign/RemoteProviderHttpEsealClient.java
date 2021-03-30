@@ -169,6 +169,16 @@ public class RemoteProviderHttpEsealClient implements RemoteHttpEsealClient {
                 new InternalServerErrorException("The user is locked and cannot logon"))
             .or(
                 signingErrorResponsePredicate(
+                    "Connection to Time Stamping service problem",
+                    field,
+                    (r) ->
+                        r.getErrorData()
+                            .getMessage()
+                            .contains("Connection to Time Stamping service problem"),
+                    new InternalServerErrorException(
+                        "Connection to Time Stamping service problem")))
+            .or(
+                signingErrorResponsePredicate(
                     "Failed to login",
                     field,
                     (r) -> r.getErrorData().getMessage().contains("Failed to Logon"),
