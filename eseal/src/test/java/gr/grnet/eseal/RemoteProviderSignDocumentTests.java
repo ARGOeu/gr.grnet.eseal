@@ -8,15 +8,20 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.europa.esig.dss.model.DSSException;
+import eu.europa.esig.dss.pdf.PDFSignatureService;
 import gr.grnet.eseal.config.RemoteProviderProperties;
 import gr.grnet.eseal.exception.InternalServerErrorException;
 import gr.grnet.eseal.exception.InvalidTOTPException;
 import gr.grnet.eseal.exception.UnprocessableEntityException;
 import gr.grnet.eseal.service.SignDocumentService;
+import gr.grnet.eseal.sign.RemoteProviderSignBuffer;
 import gr.grnet.eseal.sign.RemoteProviderSignDocument;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Calendar;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,7 +34,8 @@ import org.apache.http.message.BasicStatusLine;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -38,24 +44,27 @@ class RemoteProviderSignDocumentTests {
 
   @Mock private CloseableHttpClient httpClient;
 
-  @InjectMocks private SignDocumentService signDocumentService;
+  private SignDocumentService signDocumentService;
   private ObjectMapper objectMapper;
   private RemoteProviderSignDocument remoteProviderSignDocument;
+  private RemoteProviderSignBuffer remoteProviderSignBuffer;
 
   @BeforeEach
   void setUp() {
     MockitoAnnotations.openMocks(this);
     this.objectMapper = new ObjectMapper();
     this.objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    ReflectionTestUtils.setField(this.signDocumentService, "signingPath", "test.com");
     RemoteProviderProperties remoteProviderProperties = new RemoteProviderProperties();
 
     remoteProviderSignDocument =
         new RemoteProviderSignDocument(remoteProviderProperties, httpClient);
 
+    remoteProviderSignBuffer = new RemoteProviderSignBuffer(remoteProviderProperties, httpClient);
+
     remoteProviderProperties.setRetryEnabled(false);
     signDocumentService =
-        new SignDocumentService(remoteProviderSignDocument, remoteProviderProperties);
+        new SignDocumentService(
+            remoteProviderSignDocument, remoteProviderSignBuffer, remoteProviderProperties);
   }
 
   @Test
@@ -70,6 +79,82 @@ class RemoteProviderSignDocumentTests {
 
     assertThat("document-data-bytes")
         .isEqualTo(this.signDocumentService.signDocument(documentData, "u", "p", "k"));
+  }
+
+  @Test
+  void TestDocumentSignDetachedSuccessful() throws Exception {
+
+    InputStream isSignature =
+        RemoteProviderSignDocumentTests.class.getResourceAsStream(
+            "/detached-sign-case/".concat("detached-signature-b64.txt"));
+    InputStream isOriginalPDF =
+        RemoteProviderSignDocumentTests.class.getResourceAsStream(
+            "/detached-sign-case/".concat("original-b64-pdf.txt"));
+    InputStream isSignedPDF =
+        RemoteProviderSignDocumentTests.class.getResourceAsStream(
+            "/detached-sign-case/".concat("signed-detached-b64-pdf.txt"));
+
+    String signatureB64 =
+        new BufferedReader(new InputStreamReader(isSignature, StandardCharsets.UTF_8))
+            .lines()
+            .collect(Collectors.joining("\n"));
+
+    String originalPDFB64 =
+        new BufferedReader(new InputStreamReader(isOriginalPDF, StandardCharsets.UTF_8))
+            .lines()
+            .collect(Collectors.joining("\n"));
+
+    String signedPDFB64 =
+        new BufferedReader(new InputStreamReader(isSignedPDF, StandardCharsets.UTF_8))
+            .lines()
+            .collect(Collectors.joining("\n"));
+
+    CloseableHttpResponse mockResponse =
+        buildMockSuccessfulSignatureResponse(signatureB64, HttpStatus.SC_OK);
+
+    when(httpClient.execute(any())).thenReturn(mockResponse);
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTimeInMillis(Long.parseLong("1617901835690"));
+
+    // we have prepared a detached signature for the signing time of 1617901835690
+    assertThat(signedPDFB64)
+        .isEqualTo(
+            this.signDocumentService.signDocumentDetached(
+                originalPDFB64, "u", "p", "k", calendar.getTime()));
+  }
+
+  @Test
+  void TestDocumentSignDetachedDSSDigestError() throws Exception {
+
+    InternalServerErrorException de =
+        Assertions.assertThrows(
+            InternalServerErrorException.class,
+            () -> this.signDocumentService.signDocumentDetached("invalid", "u", "p", "k", null));
+
+    assertThat("Could not compute document digest").isEqualTo(de.getMessage());
+  }
+
+  @Test
+  void TestDocumentSignDetachedDSSSignError() throws Exception {
+
+    CloseableHttpResponse mockResponse =
+        buildMockSuccessfulSignatureResponse("sig", HttpStatus.SC_OK);
+
+    when(httpClient.execute(any())).thenReturn(mockResponse);
+
+    PDFSignatureService pdfSignatureService = mock(PDFSignatureService.class);
+    when(pdfSignatureService.digest(any(), any())).thenReturn("random-bytes".getBytes());
+    when(pdfSignatureService.sign(any(), any(), any())).thenThrow(DSSException.class);
+
+    ReflectionTestUtils.setField(
+        this.signDocumentService, "pdfSignatureService", pdfSignatureService);
+
+    InternalServerErrorException de =
+        Assertions.assertThrows(
+            InternalServerErrorException.class,
+            () -> this.signDocumentService.signDocumentDetached("doc", "u", "p", "k", null));
+
+    assertThat("Could not combine signature to original document").isEqualTo(de.getMessage());
   }
 
   @Test
@@ -243,6 +328,19 @@ class RemoteProviderSignDocumentTests {
   //      assertThat("Internal thread error").isEqualTo(exc.getMessage());
   //    }
 
+  private CloseableHttpResponse buildMockSuccessfulSignatureResponse(
+      String signature, int httpStatus) throws IOException {
+
+    // init mock response
+    MockDataField mockDataField = new MockDataField();
+    mockDataField.setSignature(signature);
+    MockRemoteProviderSignDocumentResponse mockResp = new MockRemoteProviderSignDocumentResponse();
+    mockResp.setSuccess(true);
+    mockResp.setData(mockDataField);
+
+    return buildMockClosableHttpResponse(this.objectMapper.writeValueAsBytes(mockResp), httpStatus);
+  }
+
   private CloseableHttpResponse buildMockSuccessfulResponse(String dataField, int httpStatus)
       throws IOException {
 
@@ -302,6 +400,9 @@ class RemoteProviderSignDocumentTests {
   private static class MockDataField {
     @JsonProperty("SignedFileData")
     private String signedFileData;
+
+    @JsonProperty("Signature")
+    private String signature;
   }
 
   @Getter

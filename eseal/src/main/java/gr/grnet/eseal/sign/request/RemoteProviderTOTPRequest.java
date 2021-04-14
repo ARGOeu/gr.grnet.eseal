@@ -11,6 +11,12 @@ import lombok.Setter;
 @Setter
 public class RemoteProviderTOTPRequest {
 
+  @JsonProperty("Username")
+  private String username;
+
+  @JsonProperty("Password")
+  private String password;
+
   @JsonProperty("SignPassword")
   private String signPassword;
 

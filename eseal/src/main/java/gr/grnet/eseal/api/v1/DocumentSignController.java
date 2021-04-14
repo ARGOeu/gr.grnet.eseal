@@ -4,6 +4,7 @@ import gr.grnet.eseal.dto.SignDocumentRequestDto;
 import gr.grnet.eseal.dto.SignDocumentResponseDto;
 import gr.grnet.eseal.service.SignDocumentService;
 import gr.grnet.eseal.utils.NotEmptySignDocumentRequestFieldsCheckGroup;
+import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,5 +34,19 @@ public class DocumentSignController {
             signDocumentRequest.getUsername(),
             signDocumentRequest.getPassword(),
             signDocumentRequest.getKey()));
+  }
+
+  @PostMapping("/remoteSignDocumentDetached")
+  public SignDocumentResponseDto signDocumentDetached(
+      @Validated(NotEmptySignDocumentRequestFieldsCheckGroup.class) @RequestBody
+          SignDocumentRequestDto signDocumentRequest) {
+
+    return new SignDocumentResponseDto(
+        this.signDocumentService.signDocumentDetached(
+            signDocumentRequest.getToSignDocument().getBytes(),
+            signDocumentRequest.getUsername(),
+            signDocumentRequest.getPassword(),
+            signDocumentRequest.getKey(),
+            new Date()));
   }
 }

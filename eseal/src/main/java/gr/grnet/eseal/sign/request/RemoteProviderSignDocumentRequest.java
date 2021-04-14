@@ -9,11 +9,6 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 public class RemoteProviderSignDocumentRequest extends RemoteProviderTOTPRequest {
-  @JsonProperty("Username")
-  private String username;
-
-  @JsonProperty("Password")
-  private String password;
 
   @JsonProperty("FileData")
   private String fileData;
