@@ -1,7 +1,7 @@
 package gr.grnet.eseal.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import gr.grnet.eseal.utils.NotEmptySignDocumentRequestFieldsCheckGroup;
+import gr.grnet.eseal.utils.validation.NotEmptySignDocumentRequestFieldsCheckGroup;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;

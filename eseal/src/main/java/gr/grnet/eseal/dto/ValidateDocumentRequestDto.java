@@ -1,7 +1,9 @@
 package gr.grnet.eseal.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import gr.grnet.eseal.utils.NotEmptyValidateDocumentRequestFieldsCheckGroup;
+import gr.grnet.eseal.utils.validation.Base64;
+import gr.grnet.eseal.utils.validation.Base64RequestFieldCheckGroup;
+import gr.grnet.eseal.utils.validation.NotEmptyValidateDocumentRequestFieldsCheckGroup;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -30,6 +32,9 @@ public class ValidateDocumentRequestDto {
     @NotEmpty(
         groups = NotEmptyValidateDocumentRequestFieldsCheckGroup.class,
         message = "Field signedDocument.bytes cannot be empty")
+    @Base64(
+        groups = Base64RequestFieldCheckGroup.class,
+        message = "Field toSignDocument.bytes should be encoded in base64 format")
     private String bytes;
 
     @NotEmpty(
