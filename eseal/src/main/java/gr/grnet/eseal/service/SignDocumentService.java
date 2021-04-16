@@ -19,13 +19,13 @@ import gr.grnet.eseal.exception.UnprocessableEntityException;
 import gr.grnet.eseal.logging.BackEndLogField;
 import gr.grnet.eseal.logging.ServiceLogField;
 import gr.grnet.eseal.sign.RemoteHttpEsealClient;
+import gr.grnet.eseal.sign.RemoteProviderCertificates;
 import gr.grnet.eseal.sign.RemoteProviderSignBuffer;
 import gr.grnet.eseal.sign.RemoteProviderSignDocument;
+import gr.grnet.eseal.sign.request.RemoteProviderCertificatesRequest;
 import gr.grnet.eseal.sign.request.RemoteProviderSignBufferRequest;
 import gr.grnet.eseal.sign.request.RemoteProviderSignDocumentRequest;
-import gr.grnet.eseal.sign.response.RemoteProviderSignBufferResponse;
-import gr.grnet.eseal.sign.response.RemoteProviderSignDocumentResponse;
-import gr.grnet.eseal.sign.response.RemoteProviderTOTPResponse;
+import gr.grnet.eseal.sign.response.*;
 import java.io.IOException;
 import java.util.Date;
 import java.util.function.BiFunction;
@@ -43,9 +43,11 @@ public class SignDocumentService {
 
   private RemoteProviderSignDocument remoteProviderSignDocument;
   private RemoteProviderSignBuffer remoteProviderSignBuffer;
+  private RemoteProviderCertificates remoteProviderCertificates;
   private RemoteProviderProperties remoteProviderProperties;
   private final String signingPath = "dsa/v1/sign";
   private final String signingBufferPath = "dsa/v1/SignBuffer";
+  private final String certificatesPath = "dsa/v1/Certificates";
   private final String protocol = "https";
   private PDFSignatureService pdfSignatureService;
 
@@ -53,12 +55,41 @@ public class SignDocumentService {
   public SignDocumentService(
       RemoteProviderSignDocument remoteProviderSignDocument,
       RemoteProviderSignBuffer remoteProviderSignBuffer,
+      RemoteProviderCertificates remoteProviderCertificates,
       RemoteProviderProperties remoteProviderProperties) {
     this.remoteProviderSignDocument = remoteProviderSignDocument;
     this.remoteProviderSignBuffer = remoteProviderSignBuffer;
+    this.remoteProviderCertificates = remoteProviderCertificates;
     this.remoteProviderProperties = remoteProviderProperties;
     PdfBoxNativeObjectFactory factory = new PdfBoxNativeObjectFactory();
     this.pdfSignatureService = factory.newPAdESSignatureService();
+  }
+
+  public String getSignerCommonName(String username, String password) {
+
+    RemoteProviderCertificatesRequest remoteProviderCertificatesRequest =
+        new RemoteProviderCertificatesRequest();
+    remoteProviderCertificatesRequest.setUsername(username);
+    remoteProviderCertificatesRequest.setPassword(password);
+    remoteProviderCertificatesRequest.setUrl(
+        String.format(
+            "%s://%s/%s", protocol, remoteProviderProperties.getEndpoint(), certificatesPath));
+
+    RemoteProviderCertificatesResponse remoteProviderCertificatesResponse =
+        this.remoteProviderCertificates.executeRemoteProviderRequestResponse(
+            remoteProviderCertificatesRequest,
+            RemoteProviderCertificatesResponse.class,
+            errorResponseFunction());
+
+    try {
+      return gr.grnet.eseal.utils.Utils.extractCNFromSubject(
+          remoteProviderCertificatesResponse.getSubject());
+    } catch (Exception e) {
+      LOGGER.error(
+          "Error with Signer's Certificate Subject ",
+          f(ServiceLogField.builder().details(e.getMessage()).build()));
+      throw new InternalServerErrorException("Error with Signer's Certificate Subject");
+    }
   }
 
   public String signDocumentDetached(
@@ -98,7 +129,7 @@ public class SignDocumentService {
             "%s://%s/%s", protocol, remoteProviderProperties.getEndpoint(), signingBufferPath));
 
     RemoteProviderSignBufferResponse response =
-        remoteProviderSignBuffer.sign(
+        remoteProviderSignBuffer.executeRemoteProviderRequestResponse(
             request, RemoteProviderSignBufferResponse.class, errorResponseFunction());
 
     // combine signature with original document
@@ -140,7 +171,7 @@ public class SignDocumentService {
         String.format("%s://%s/%s", protocol, remoteProviderProperties.getEndpoint(), signingPath));
 
     RemoteProviderSignDocumentResponse response =
-        remoteProviderSignDocument.sign(
+        remoteProviderSignDocument.executeRemoteProviderRequestResponse(
             request, RemoteProviderSignDocumentResponse.class, errorResponseFunction());
 
     return response.getSignedFileData();
@@ -151,14 +182,14 @@ public class SignDocumentService {
   }
 
   private static BiFunction<
-          BackEndLogField, Logger, Supplier<Predicate<RemoteProviderTOTPResponse>>>
+          BackEndLogField, Logger, Supplier<Predicate<AbstractRemoteProviderResponse>>>
       errorResponseFunction() {
     return (field, logger) ->
         () ->
             RemoteHttpEsealClient.errorResponsePredicate(
                     "The user is locked",
                     field,
-                    (r) -> r.getErrorData().getMessage().contains("The user is locked"),
+                    (r) -> r.getErrorMessage().contains("The user is locked"),
                     new InternalServerErrorException("The user is locked and cannot logon"),
                     logger)
                 .or(
@@ -166,8 +197,7 @@ public class SignDocumentService {
                         "Connection to Time Stamping service problem",
                         field,
                         (r) ->
-                            r.getErrorData()
-                                .getMessage()
+                            r.getErrorMessage()
                                 .contains("Connection to Time Stamping service problem"),
                         new InternalServerErrorException(
                             "Connection to Time Stamping service problem"),
@@ -176,14 +206,25 @@ public class SignDocumentService {
                     RemoteHttpEsealClient.errorResponsePredicate(
                         "Failed to login",
                         field,
-                        (r) -> r.getErrorData().getMessage().contains("Failed to Logon"),
+                        (r) -> r.getErrorMessage().contains("Failed to Logon"),
+                        new UnprocessableEntityException("Wrong user credentials"),
+                        logger))
+                .or(
+                    RemoteHttpEsealClient.errorResponsePredicate(
+                        "Failed to login",
+                        field,
+                        (r) ->
+                            r.getErrorMessage()
+                                .contains(
+                                    "(0X90020133)-Failed to allocated resources"
+                                        + " for a new SAPI-LOGIN session (dynamic slot)."),
                         new UnprocessableEntityException("Wrong user credentials"),
                         logger))
                 .or(
                     RemoteHttpEsealClient.errorResponsePredicate(
                         "Invalid TOTP",
                         field,
-                        (r) -> r.getErrorData().getMessage().contains("Failed to Sign"),
+                        (r) -> r.getErrorMessage().contains("Failed to Sign"),
                         new InvalidTOTPException(),
                         logger))
                 .or(
