@@ -64,7 +64,7 @@ class RemoteProviderSignDocumentTests {
     remoteProviderProperties.setRetryEnabled(false);
     signDocumentService =
         new SignDocumentService(
-            remoteProviderSignDocument, remoteProviderSignBuffer, remoteProviderProperties);
+            remoteProviderSignDocument, remoteProviderSignBuffer, null, remoteProviderProperties);
   }
 
   @Test

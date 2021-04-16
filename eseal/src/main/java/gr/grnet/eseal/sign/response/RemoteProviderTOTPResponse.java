@@ -7,13 +7,15 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class RemoteProviderTOTPResponse {
-
-  @JsonProperty("Success")
-  private Boolean success;
+public class RemoteProviderTOTPResponse extends AbstractRemoteProviderResponse {
 
   @JsonProperty("ErrData")
   private ErrorData errorData;
+
+  @Override
+  public String getErrorMessage() {
+    return this.errorData.getMessage();
+  }
 
   @Getter
   @Setter

@@ -8,9 +8,8 @@ import gr.grnet.eseal.exception.InternalServerErrorException;
 import gr.grnet.eseal.exception.InvalidTOTPException;
 import gr.grnet.eseal.logging.BackEndLogField;
 import gr.grnet.eseal.logging.ServiceLogField;
-import gr.grnet.eseal.sign.request.RemoteProviderTOTPRequest;
-import gr.grnet.eseal.sign.response.RemoteProviderTOTPResponse;
-import gr.grnet.eseal.utils.TOTP;
+import gr.grnet.eseal.sign.request.AbstractRemoteProviderRequest;
+import gr.grnet.eseal.sign.response.AbstractRemoteProviderResponse;
 import gr.grnet.eseal.utils.Utils;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,29 +27,30 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Implementation of {@link RemoteHttpEsealClient} to provide methods to sign the content in {@link
- * Request}.
+ * Implementation of {@link RemoteHttpEsealClient} to provide methods to
+ * executeRemoteProviderRequestResponse the content in {@link Request}.
  */
-public abstract class RemoteHttpEsealClientAbstract<
-        Request extends RemoteProviderTOTPRequest, Response extends RemoteProviderTOTPResponse>
+public abstract class AbstractRemoteHttpEsealClient<
+        Request extends AbstractRemoteProviderRequest,
+        Response extends AbstractRemoteProviderResponse>
     implements RemoteHttpEsealClient<Request, Response> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(RemoteHttpEsealClientAbstract.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRemoteHttpEsealClient.class);
 
   private final CloseableHttpClient closeableHttpClient;
   private final RemoteProviderProperties remoteProviderProperties;
 
-  protected RemoteHttpEsealClientAbstract(
+  protected AbstractRemoteHttpEsealClient(
       CloseableHttpClient closeableHttpClient, RemoteProviderProperties remoteProviderProperties) {
     this.closeableHttpClient = closeableHttpClient;
     this.remoteProviderProperties = remoteProviderProperties;
   }
 
   @Override
-  public Response sign(
+  public Response executeRemoteProviderRequestResponse(
       Request request,
       Class<Response> clazz,
-      BiFunction<BackEndLogField, Logger, Supplier<Predicate<RemoteProviderTOTPResponse>>>
+      BiFunction<BackEndLogField, Logger, Supplier<Predicate<AbstractRemoteProviderResponse>>>
           errorResponseFunction) {
 
     // check if retry is enabled
@@ -60,11 +60,11 @@ public abstract class RemoteHttpEsealClientAbstract<
       while (retryCount < this.remoteProviderProperties.getRetryCounter()) {
 
         try {
-          return this.doSign(request, clazz, errorResponseFunction);
+          return this.executePost(request, clazz, errorResponseFunction);
         } catch (InvalidTOTPException | InternalServerErrorException ie) {
           retryCount++;
           LOGGER.warn(
-              "Encountered an exception while trying to sign",
+              "Encountered an exception while trying to executeRemoteProviderRequestResponse",
               f(ServiceLogField.builder().details(ie.getMessage()).build()));
           LOGGER.info(
               "Retrying for the {} time in {} seconds",
@@ -81,43 +81,42 @@ public abstract class RemoteHttpEsealClientAbstract<
     }
     // if the retry mechanism has been enabled, this is the last retry
     // otherwise is the one and only call to the remote signing service
-    return this.doSign(request, clazz, errorResponseFunction);
+    return this.executePost(request, clazz, errorResponseFunction);
   }
 
   /**
-   * doSign takes care of the internal business logic for connecting to the provider's's remote http
-   * api in order to sign the provided document
+   * executePost takes care of the internal business logic for connecting to the provider's's remote
+   * http api in order to executeRemoteProviderRequestResponse the provided document
    */
-  private Response doSign(
+  private Response executePost(
       Request request,
       Class<Response> clazz,
-      BiFunction<BackEndLogField, Logger, Supplier<Predicate<RemoteProviderTOTPResponse>>>
+      BiFunction<BackEndLogField, Logger, Supplier<Predicate<AbstractRemoteProviderResponse>>>
           errorResponseFunction) {
 
     long start = System.currentTimeMillis();
 
     try {
       // generate new TOTP password
-      request.setSignPassword(
-          TOTP.generate(
-              request.getKey(), this.remoteProviderProperties.getTotpWaitForRefreshSeconds()));
+      request.setTOTP(
+          request.getKey(), this.remoteProviderProperties.getTotpWaitForRefreshSeconds());
 
-      // attempt to sign with remote provider
-      Response remoteProviderSignDocumentResponse = this.doPost(request, clazz);
+      // attempt to executeRemoteProviderRequestResponse with remote provider
+      Response remoteProviderPostRequestResponse = this.doPost(request, clazz);
 
       String executionTime = Utils.formatTimePeriod(start);
 
       // check if the signing was successful
-      if (!remoteProviderSignDocumentResponse.getSuccess()) {
+      if (!remoteProviderPostRequestResponse.getSuccess()) {
 
         BackEndLogField field =
             BackEndLogField.builder()
                 .backendHost(this.remoteProviderProperties.getEndpoint())
-                .details(remoteProviderSignDocumentResponse.getErrorData().getMessage())
+                .details(remoteProviderPostRequestResponse.getErrorMessage())
                 .executionTime(executionTime)
                 .build();
 
-        errorResponseFunction.apply(field, LOGGER).get().test((remoteProviderSignDocumentResponse));
+        errorResponseFunction.apply(field, LOGGER).get().test((remoteProviderPostRequestResponse));
       }
 
       LOGGER.info(
@@ -128,7 +127,7 @@ public abstract class RemoteHttpEsealClientAbstract<
                   .executionTime(executionTime)
                   .build()));
 
-      return remoteProviderSignDocumentResponse;
+      return remoteProviderPostRequestResponse;
     } catch (IOException ioe) {
 
       LOGGER.error(

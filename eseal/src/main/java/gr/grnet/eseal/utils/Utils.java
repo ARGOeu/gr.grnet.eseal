@@ -1,5 +1,7 @@
 package gr.grnet.eseal.utils;
 
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 
 public final class Utils {
@@ -32,5 +34,24 @@ public final class Utils {
       }
     }
     return timePeriodToString;
+  }
+
+  /**
+   * * extractCNFromSubject extracts and returns the value of the common name rdn
+   *
+   * @param subject pf an x509 certificate
+   * @return the value of the common name rdn
+   * @throws Exception when the subject is invalid
+   */
+  public static String extractCNFromSubject(String subject) throws Exception {
+
+    LdapName ldapName = new LdapName(subject);
+
+    for (Rdn rdn : ldapName.getRdns()) {
+      if (rdn.getType().equals("CN")) {
+        return rdn.getValue().toString();
+      }
+    }
+    throw new Exception("No Common Name present in subject");
   }
 }
