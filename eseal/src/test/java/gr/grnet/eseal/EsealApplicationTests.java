@@ -2,9 +2,18 @@ package gr.grnet.eseal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import eu.europa.esig.dss.enumerations.DigestAlgorithm;
+import eu.europa.esig.dss.model.DSSDocument;
+import eu.europa.esig.dss.model.InMemoryDocument;
+import eu.europa.esig.dss.pades.DSSFileFont;
+import eu.europa.esig.dss.pades.DSSFont;
 import gr.grnet.eseal.config.DocumentValidatorLOTLBean;
 import gr.grnet.eseal.config.RemoteProviderProperties;
 import gr.grnet.eseal.config.ValidationProperties;
+import gr.grnet.eseal.config.VisibleSignatureProperties;
+import gr.grnet.eseal.config.VisibleSignaturePropertiesBean;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,15 +29,19 @@ class EsealApplicationTests {
 
   private DocumentValidatorLOTLBean documentValidatorLOTLBean;
 
+  private VisibleSignatureProperties visibleSignatureProperties;
+
   @Autowired
   EsealApplicationTests(
       RemoteProviderProperties remoteProviderProperties,
       ValidationProperties validationProperties,
-      DocumentValidatorLOTLBean documentValidatorLOTLBean) {
+      DocumentValidatorLOTLBean documentValidatorLOTLBean,
+      VisibleSignatureProperties visibleSignatureProperties) {
 
     this.remoteProviderProperties = remoteProviderProperties;
     this.validationProperties = validationProperties;
     this.documentValidatorLOTLBean = documentValidatorLOTLBean;
+    this.visibleSignatureProperties = visibleSignatureProperties;
   }
 
   @Test
@@ -65,6 +78,33 @@ class EsealApplicationTests {
     assertThat(true).isEqualTo(this.documentValidatorLOTLBean.getLotlRefreshEnable());
     assertThat(0).isEqualTo(this.documentValidatorLOTLBean.getRefreshInitialDelay());
     assertThat(21600000).isEqualTo(this.documentValidatorLOTLBean.getRefreshInterval());
+  }
+
+  @Test
+  void testVisibleSignaturePropertiesLoad() {
+
+    DSSDocument imageDocument =
+        new InMemoryDocument(
+            VisibleSignaturePropertiesBean.class.getResourceAsStream(
+                "/visible-signature/".concat("ste.jpg")));
+
+    assertThat(this.visibleSignatureProperties.getImageDocument().getDigest(DigestAlgorithm.SHA256))
+        .isEqualTo(imageDocument.getDigest(DigestAlgorithm.SHA256));
+
+    DSSFont font =
+        new DSSFileFont(
+            VisibleSignaturePropertiesBean.class.getResourceAsStream(
+                "/visible-signature/".concat("DejaVuSans.ttf")));
+    font.setSize(6);
+
+    assertThat(this.visibleSignatureProperties.getFont().getSize()).isEqualTo(font.getSize());
+    assertThat(this.visibleSignatureProperties.getFont().getJavaFont())
+        .isEqualTo(font.getJavaFont());
+
+    assertThat(this.visibleSignatureProperties.getZoneId()).isEqualTo(ZoneId.of("Europe/Athens"));
+
+    assertThat(this.visibleSignatureProperties.getDateTimeFormatter().toString())
+        .isEqualTo(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss z").toString());
   }
 
   @Test
