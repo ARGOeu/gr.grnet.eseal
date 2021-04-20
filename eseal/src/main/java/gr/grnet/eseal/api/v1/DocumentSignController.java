@@ -41,12 +41,17 @@ public class DocumentSignController {
       @Validated(NotEmptySignDocumentRequestFieldsCheckGroup.class) @RequestBody
           SignDocumentRequestDto signDocumentRequest) {
 
+    String sub =
+        this.signDocumentService.getSignerInfo(
+            signDocumentRequest.getUsername(), signDocumentRequest.getPassword());
+
     return new SignDocumentResponseDto(
         this.signDocumentService.signDocumentDetached(
             signDocumentRequest.getToSignDocument().getBytes(),
             signDocumentRequest.getUsername(),
             signDocumentRequest.getPassword(),
             signDocumentRequest.getKey(),
-            new Date()));
+            new Date(),
+            sub));
   }
 }

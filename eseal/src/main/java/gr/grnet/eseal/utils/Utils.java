@@ -39,19 +39,47 @@ public final class Utils {
   /**
    * * extractCNFromSubject extracts and returns the value of the common name rdn
    *
-   * @param subject pf an x509 certificate
+   * @param subject of an x509 certificate
    * @return the value of the common name rdn
    * @throws Exception when the subject is invalid
    */
   public static String extractCNFromSubject(String subject) throws Exception {
+    return extractRDNFromSubject(subject, "CN");
+  }
 
+  /**
+   * * extractCNFromSubject extracts and returns the value of the common name rdn
+   *
+   * @param subject of an x509 certificate
+   * @return the value of the organizational unit rdn
+   * @throws Exception when the subject is invalid
+   */
+  public static String extractOUFromSubject(String subject) throws Exception {
+    return extractRDNFromSubject(subject, "OU");
+  }
+
+  private static String extractRDNFromSubject(String subject, String rdn) throws Exception {
     LdapName ldapName = new LdapName(subject);
-
-    for (Rdn rdn : ldapName.getRdns()) {
-      if (rdn.getType().equals("CN")) {
-        return rdn.getValue().toString();
+    for (Rdn r : ldapName.getRdns()) {
+      if (r.getType().equals(rdn)) {
+        return r.getValue().toString();
       }
     }
-    throw new Exception("No Common Name present in subject");
+    throw new Exception("No" + rdn + "present in subject");
+  }
+
+  /**
+   * @param signerInfo represents the singer's info inside the signature
+   * @param date represents the visible date of the signature
+   * @return properly formatted and combined singerInfo and date
+   */
+  public static String formatVisibleSignatureText(String signerInfo, String date) {
+
+    String signerInfoFormatted =
+        String.format("%1$-100s", "Ψηφιακά υπογεγραμμένο από " + signerInfo);
+
+    String dateFormatted = String.format("%1$-100s", "Ημερομηνία: " + date);
+
+    return signerInfoFormatted + "\n" + dateFormatted;
   }
 }

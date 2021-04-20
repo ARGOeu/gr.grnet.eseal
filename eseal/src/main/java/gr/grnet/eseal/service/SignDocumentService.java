@@ -4,15 +4,21 @@ import static net.logstash.logback.argument.StructuredArguments.f;
 
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
+import eu.europa.esig.dss.enumerations.SignerTextHorizontalAlignment;
+import eu.europa.esig.dss.enumerations.VisualSignatureAlignmentHorizontal;
+import eu.europa.esig.dss.enumerations.VisualSignatureAlignmentVertical;
 import eu.europa.esig.dss.model.BLevelParameters;
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.DSSException;
 import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.pades.PAdESSignatureParameters;
+import eu.europa.esig.dss.pades.SignatureImageParameters;
+import eu.europa.esig.dss.pades.SignatureImageTextParameters;
 import eu.europa.esig.dss.pdf.PDFSignatureService;
 import eu.europa.esig.dss.pdf.pdfbox.PdfBoxNativeObjectFactory;
 import eu.europa.esig.dss.utils.Utils;
 import gr.grnet.eseal.config.RemoteProviderProperties;
+import gr.grnet.eseal.config.VisibleSignatureProperties;
 import gr.grnet.eseal.exception.InternalServerErrorException;
 import gr.grnet.eseal.exception.InvalidTOTPException;
 import gr.grnet.eseal.exception.UnprocessableEntityException;
@@ -30,6 +36,7 @@ import gr.grnet.eseal.sign.response.RemoteProviderCertificatesResponse;
 import gr.grnet.eseal.sign.response.RemoteProviderSignBufferResponse;
 import gr.grnet.eseal.sign.response.RemoteProviderSignDocumentResponse;
 import java.io.IOException;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
@@ -48,6 +55,7 @@ public class SignDocumentService {
   private RemoteProviderSignBuffer remoteProviderSignBuffer;
   private RemoteProviderCertificates remoteProviderCertificates;
   private RemoteProviderProperties remoteProviderProperties;
+  private VisibleSignatureProperties visibleSignatureProperties;
   private final String signingPath = "dsa/v1/sign";
   private final String signingBufferPath = "dsa/v1/SignBuffer";
   private final String certificatesPath = "dsa/v1/Certificates";
@@ -59,16 +67,18 @@ public class SignDocumentService {
       RemoteProviderSignDocument remoteProviderSignDocument,
       RemoteProviderSignBuffer remoteProviderSignBuffer,
       RemoteProviderCertificates remoteProviderCertificates,
-      RemoteProviderProperties remoteProviderProperties) {
+      RemoteProviderProperties remoteProviderProperties,
+      VisibleSignatureProperties visibleSignatureProperties) {
     this.remoteProviderSignDocument = remoteProviderSignDocument;
     this.remoteProviderSignBuffer = remoteProviderSignBuffer;
     this.remoteProviderCertificates = remoteProviderCertificates;
     this.remoteProviderProperties = remoteProviderProperties;
+    this.visibleSignatureProperties = visibleSignatureProperties;
     PdfBoxNativeObjectFactory factory = new PdfBoxNativeObjectFactory();
     this.pdfSignatureService = factory.newPAdESSignatureService();
   }
 
-  public String getSignerCommonName(String username, String password) {
+  public String getSignerInfo(String username, String password) {
 
     RemoteProviderCertificatesRequest remoteProviderCertificatesRequest =
         new RemoteProviderCertificatesRequest();
@@ -86,7 +96,10 @@ public class SignDocumentService {
 
     try {
       return gr.grnet.eseal.utils.Utils.extractCNFromSubject(
-          remoteProviderCertificatesResponse.getSubject());
+              remoteProviderCertificatesResponse.getSubject())
+          + "/"
+          + gr.grnet.eseal.utils.Utils.extractOUFromSubject(
+              remoteProviderCertificatesResponse.getSubject());
     } catch (Exception e) {
       LOGGER.error(
           "Error with Signer's Certificate Subject ",
@@ -96,21 +109,46 @@ public class SignDocumentService {
   }
 
   public String signDocumentDetached(
-      String document, String username, String password, String key, Date signingDate) {
+      String document,
+      String username,
+      String password,
+      String key,
+      Date signingDate,
+      String signerInfo) {
 
     DSSDocument toBeSignedDocument = new InMemoryDocument(Utils.fromBase64(document));
     DSSDocument signedDocument;
 
+    // visible signature text
+    ZonedDateTime z =
+        ZonedDateTime.ofInstant(
+            signingDate.toInstant(), this.visibleSignatureProperties.getZoneId());
+
+    SignatureImageTextParameters signatureImageTextParameters = new SignatureImageTextParameters();
+    signatureImageTextParameters.setText(
+        gr.grnet.eseal.utils.Utils.formatVisibleSignatureText(
+            signerInfo, z.format(this.visibleSignatureProperties.getDateTimeFormatter())));
+
+    signatureImageTextParameters.setFont(this.visibleSignatureProperties.getFont());
+    signatureImageTextParameters.setSignerTextHorizontalAlignment(
+        SignerTextHorizontalAlignment.LEFT);
+
+    // visible signature image
+    SignatureImageParameters signatureImageParameters = new SignatureImageParameters();
+    signatureImageParameters.setTextParameters(signatureImageTextParameters);
+    signatureImageParameters.setImage(this.visibleSignatureProperties.getImageDocument());
+    signatureImageParameters.setAlignmentHorizontal(VisualSignatureAlignmentHorizontal.LEFT);
+    signatureImageParameters.setAlignmentVertical(VisualSignatureAlignmentVertical.TOP);
+
     // Initialize the PaDES parameters
     PAdESSignatureParameters padesSignatureParameters = new PAdESSignatureParameters();
+    padesSignatureParameters.setImageParameters(signatureImageParameters);
     padesSignatureParameters.setSignatureLevel(SignatureLevel.PAdES_BASELINE_B);
     padesSignatureParameters.setDigestAlgorithm(DigestAlgorithm.SHA256);
     padesSignatureParameters.setContentSize(3 * 9472);
-    if (signingDate != null) {
-      BLevelParameters blevelParameters = new BLevelParameters();
-      blevelParameters.setSigningDate(signingDate);
-      padesSignatureParameters.setBLevelParams(blevelParameters);
-    }
+    BLevelParameters blevelParameters = new BLevelParameters();
+    blevelParameters.setSigningDate(signingDate);
+    padesSignatureParameters.setBLevelParams(blevelParameters);
 
     byte[] digestBytes;
     // compute the digest of the PDF document
