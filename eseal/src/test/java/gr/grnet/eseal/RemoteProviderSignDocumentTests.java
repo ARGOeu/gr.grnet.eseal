@@ -8,7 +8,9 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.DSSException;
+import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.pdf.PDFSignatureService;
 import gr.grnet.eseal.config.RemoteProviderProperties;
 import gr.grnet.eseal.config.VisibleSignatureProperties;
@@ -133,6 +135,59 @@ class RemoteProviderSignDocumentTests {
   }
 
   @TestOnlyIfTimezoneUTC
+  void TestDocumentSignDetachedSuccessfulUTCWithSignerInfoAndImage() throws Exception {
+
+    InputStream isSignature =
+        RemoteProviderSignDocumentTests.class.getResourceAsStream(
+            "/detached-sign-case/".concat("detached-signature-utc-si-img-b64.txt"));
+    InputStream isOriginalPDF =
+        RemoteProviderSignDocumentTests.class.getResourceAsStream(
+            "/detached-sign-case/".concat("original-b64-pdf.txt"));
+    InputStream isSignedPDF =
+        RemoteProviderSignDocumentTests.class.getResourceAsStream(
+            "/detached-sign-case/".concat("signed-detached-utc-si-img-b64-pdf.txt"));
+
+    DSSDocument imageDocument =
+        new InMemoryDocument(
+            RemoteProviderSignDocumentTests.class.getResourceAsStream(
+                "/visible-signature/".concat("ste2.jpeg")));
+
+    String signatureB64 =
+        new BufferedReader(new InputStreamReader(isSignature, StandardCharsets.UTF_8))
+            .lines()
+            .collect(Collectors.joining("\n"));
+
+    String originalPDFB64 =
+        new BufferedReader(new InputStreamReader(isOriginalPDF, StandardCharsets.UTF_8))
+            .lines()
+            .collect(Collectors.joining("\n"));
+
+    String signedPDFB64 =
+        new BufferedReader(new InputStreamReader(isSignedPDF, StandardCharsets.UTF_8))
+            .lines()
+            .collect(Collectors.joining("\n"));
+
+    CloseableHttpResponse mockResponse =
+        buildMockSuccessfulSignatureResponse(signatureB64, HttpStatus.SC_OK);
+
+    when(httpClient.execute(any())).thenReturn(mockResponse);
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTimeInMillis(Long.parseLong("1617901835690"));
+
+    // we have prepared a detached signature for the signing time of 1617901835690
+    assertThat(
+            this.signDocumentService.signDocumentDetached(
+                originalPDFB64,
+                "u",
+                "p",
+                "k",
+                calendar.getTime(),
+                "test.example.com/unit-1",
+                imageDocument))
+        .isEqualTo(signedPDFB64);
+  }
+
+  @TestOnlyIfTimezoneUTC
   void TestDocumentSignDetachedSuccessfulUTC() throws Exception {
 
     InputStream isSignature =
@@ -170,7 +225,7 @@ class RemoteProviderSignDocumentTests {
     // we have prepared a detached signature for the signing time of 1617901835690
     assertThat(
             this.signDocumentService.signDocumentDetached(
-                originalPDFB64, "u", "p", "k", calendar.getTime(), ""))
+                originalPDFB64, "u", "p", "k", calendar.getTime(), "", null))
         .isEqualTo(signedPDFB64);
   }
 
@@ -212,7 +267,60 @@ class RemoteProviderSignDocumentTests {
     // we have prepared a detached signature for the signing time of 1617901835690
     assertThat(
             this.signDocumentService.signDocumentDetached(
-                originalPDFB64, "u", "p", "k", calendar.getTime(), ""))
+                originalPDFB64, "u", "p", "k", calendar.getTime(), "", null))
+        .isEqualTo(signedPDFB64);
+  }
+
+  @TestOnlyIfTimezoneEuropeAthens
+  void TestDocumentSignDetachedSuccessfulAthensWithSignerInfoAndImage() throws Exception {
+
+    InputStream isSignature =
+        RemoteProviderSignDocumentTests.class.getResourceAsStream(
+            "/detached-sign-case/".concat("detached-signature-athens-si-img-b64.txt"));
+    InputStream isOriginalPDF =
+        RemoteProviderSignDocumentTests.class.getResourceAsStream(
+            "/detached-sign-case/".concat("original-b64-pdf.txt"));
+    InputStream isSignedPDF =
+        RemoteProviderSignDocumentTests.class.getResourceAsStream(
+            "/detached-sign-case/".concat("signed-detached-athens-si-img-b64-pdf.txt"));
+
+    DSSDocument imageDocument =
+        new InMemoryDocument(
+            RemoteProviderSignDocumentTests.class.getResourceAsStream(
+                "/visible-signature/".concat("ste2.jpeg")));
+
+    String signatureB64 =
+        new BufferedReader(new InputStreamReader(isSignature, StandardCharsets.UTF_8))
+            .lines()
+            .collect(Collectors.joining("\n"));
+
+    String originalPDFB64 =
+        new BufferedReader(new InputStreamReader(isOriginalPDF, StandardCharsets.UTF_8))
+            .lines()
+            .collect(Collectors.joining("\n"));
+
+    String signedPDFB64 =
+        new BufferedReader(new InputStreamReader(isSignedPDF, StandardCharsets.UTF_8))
+            .lines()
+            .collect(Collectors.joining("\n"));
+
+    CloseableHttpResponse mockResponse =
+        buildMockSuccessfulSignatureResponse(signatureB64, HttpStatus.SC_OK);
+
+    when(httpClient.execute(any())).thenReturn(mockResponse);
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTimeInMillis(Long.parseLong("1617901835690"));
+
+    // we have prepared a detached signature for the signing time of 1617901835690
+    assertThat(
+            this.signDocumentService.signDocumentDetached(
+                originalPDFB64,
+                "u",
+                "p",
+                "k",
+                calendar.getTime(),
+                "test.example.com/unit-1",
+                imageDocument))
         .isEqualTo(signedPDFB64);
   }
 
@@ -224,7 +332,7 @@ class RemoteProviderSignDocumentTests {
             InternalServerErrorException.class,
             () ->
                 this.signDocumentService.signDocumentDetached(
-                    "invalid", "u", "p", "k", new Date(), ""));
+                    "invalid", "u", "p", "k", new Date(), "", null));
 
     assertThat("Could not compute document digest").isEqualTo(de.getMessage());
   }
@@ -249,7 +357,7 @@ class RemoteProviderSignDocumentTests {
             InternalServerErrorException.class,
             () ->
                 this.signDocumentService.signDocumentDetached(
-                    "doc", "u", "p", "k", new Date(), ""));
+                    "doc", "u", "p", "k", new Date(), "", null));
 
     assertThat("Could not combine signature to original document").isEqualTo(de.getMessage());
   }

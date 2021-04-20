@@ -114,7 +114,8 @@ public class SignDocumentService {
       String password,
       String key,
       Date signingDate,
-      String signerInfo) {
+      String signerInfo,
+      DSSDocument imageDocument) {
 
     DSSDocument toBeSignedDocument = new InMemoryDocument(Utils.fromBase64(document));
     DSSDocument signedDocument;
@@ -136,7 +137,13 @@ public class SignDocumentService {
     // visible signature image
     SignatureImageParameters signatureImageParameters = new SignatureImageParameters();
     signatureImageParameters.setTextParameters(signatureImageTextParameters);
-    signatureImageParameters.setImage(this.visibleSignatureProperties.getImageDocument());
+
+    // check if an image has been provided, otherwise use the default
+    if (imageDocument != null) {
+      signatureImageParameters.setImage(imageDocument);
+    } else {
+      signatureImageParameters.setImage(this.visibleSignatureProperties.getImageDocument());
+    }
     signatureImageParameters.setAlignmentHorizontal(VisualSignatureAlignmentHorizontal.LEFT);
     signatureImageParameters.setAlignmentVertical(VisualSignatureAlignmentVertical.TOP);
 
