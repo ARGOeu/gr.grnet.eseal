@@ -2,6 +2,7 @@ package gr.grnet.eseal.config;
 
 import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.InMemoryDocument;
+import eu.europa.esig.dss.model.MimeType;
 import eu.europa.esig.dss.pades.DSSFileFont;
 import eu.europa.esig.dss.pades.DSSFont;
 import lombok.NoArgsConstructor;
@@ -20,14 +21,18 @@ public class VisibleSignaturePropertiesBean {
     // load the default image
     DSSDocument imageDocument =
         new InMemoryDocument(
-            VisibleSignaturePropertiesBean.class.getResourceAsStream("/".concat("ste.jpeg")));
+            VisibleSignaturePropertiesBean.class.getResourceAsStream(
+                "/visible-signature/".concat("ste.jpg")));
+    imageDocument.setMimeType(MimeType.JPEG);
+    imageDocument.setName("ste.jpg");
 
     visibleSignatureProperties.setImageDocument(imageDocument);
 
     // load the DejaVuSans font
     DSSFont font =
         new DSSFileFont(
-            VisibleSignaturePropertiesBean.class.getResourceAsStream("/".concat("DejaVuSans.ttf")));
+            VisibleSignaturePropertiesBean.class.getResourceAsStream(
+                "/visible-signature/".concat("DejaVuSans.ttf")));
     font.setSize(6);
 
     visibleSignatureProperties.setFont(font);
