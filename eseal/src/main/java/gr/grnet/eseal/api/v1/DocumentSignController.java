@@ -1,5 +1,9 @@
 package gr.grnet.eseal.api.v1;
 
+import eu.europa.esig.dss.model.DSSDocument;
+import eu.europa.esig.dss.model.InMemoryDocument;
+import eu.europa.esig.dss.utils.Utils;
+import gr.grnet.eseal.dto.SignDocumentDetachedRequestDto;
 import gr.grnet.eseal.dto.SignDocumentRequestDto;
 import gr.grnet.eseal.dto.SignDocumentResponseDto;
 import gr.grnet.eseal.service.SignDocumentService;
@@ -39,11 +43,18 @@ public class DocumentSignController {
   @PostMapping("/remoteSignDocumentDetached")
   public SignDocumentResponseDto signDocumentDetached(
       @Validated(NotEmptySignDocumentRequestFieldsCheckGroup.class) @RequestBody
-          SignDocumentRequestDto signDocumentRequest) {
+          SignDocumentDetachedRequestDto signDocumentRequest) {
 
-    String sub =
+    String signerInfo =
         this.signDocumentService.getSignerInfo(
             signDocumentRequest.getUsername(), signDocumentRequest.getPassword());
+
+    DSSDocument imageDocument = null;
+
+    // check if an image has been provided
+    if (!signDocumentRequest.getImageBytes().equals("")) {
+      imageDocument = new InMemoryDocument(Utils.fromBase64(signDocumentRequest.getImageBytes()));
+    }
 
     return new SignDocumentResponseDto(
         this.signDocumentService.signDocumentDetached(
@@ -52,6 +63,7 @@ public class DocumentSignController {
             signDocumentRequest.getPassword(),
             signDocumentRequest.getKey(),
             new Date(),
-            sub));
+            signerInfo,
+            imageDocument));
   }
 }

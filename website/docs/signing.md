@@ -62,7 +62,8 @@ Each username/password pair corresponds to a specific key.
 
 This API call does not send the entire PDF to the remote eseal provider for signing
 but rather only the digest(hash) of the provided document and finally it combines
-the returned signature with the original pdf document.
+the returned signature with the original pdf document.The signature will also be visible
+containing an image and the CN/OU from the signing certificate.
 
 ### Request
 
@@ -79,6 +80,9 @@ The username/password pair maps to a specific eseal.
 - `key` :  Key that will be used with the TOTP generation.
 Each username/password pair corresponds to a specific key.
 
+- `imageBytes(optional)` :  Custom image to be included into the visible signature and
+override the default.
+
 - `toSignDocument.bytes` : PDF document to be signed in base64 encoded format
 
 - `toSignDocument.name`: Placeholder name for the pdf document
@@ -89,6 +93,7 @@ Each username/password pair corresponds to a specific key.
 	"username": "example-user",
 	"password": "example-password",
 	"key": "example-key",
+	"imageBytes": "MJIDdijo...",
 	"toSignDocument": {
 		"name": "document.pdf",
 		"bytes": "JVBERi0xLjM..."

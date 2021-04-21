@@ -20,7 +20,7 @@ public class VisibleSignaturePropertiesBean {
     // load the default image
     DSSDocument imageDocument =
         new InMemoryDocument(
-            VisibleSignaturePropertiesBean.class.getResourceAsStream("/".concat("ste.jpg")));
+            VisibleSignaturePropertiesBean.class.getResourceAsStream("/".concat("ste.jpeg")));
 
     visibleSignatureProperties.setImageDocument(imageDocument);
 

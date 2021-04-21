@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gr.grnet.eseal.api.v1.DocumentSignController;
 import gr.grnet.eseal.dto.SignDocumentRequestDto;
 import gr.grnet.eseal.dto.SignDocumentResponseDto;
+import gr.grnet.eseal.dto.ToSignDocument;
 import gr.grnet.eseal.exception.APIError;
 import gr.grnet.eseal.exception.InternalServerErrorException;
 import gr.grnet.eseal.service.SignDocumentService;
@@ -42,8 +43,7 @@ class DocumentSignControllerTests {
     signDocumentRequestDto.setUsername("u1");
     signDocumentRequestDto.setPassword("p1");
     signDocumentRequestDto.setKey("k1");
-    SignDocumentRequestDto.ToSignDocument toSignDocument =
-        new SignDocumentRequestDto().new ToSignDocument();
+    ToSignDocument toSignDocument = new ToSignDocument();
     toSignDocument.setBytes("random-bytes");
     toSignDocument.setName("random-name");
     signDocumentRequestDto.setToSignDocument(toSignDocument);
@@ -76,8 +76,7 @@ class DocumentSignControllerTests {
     signDocumentRequestDto.setUsername("u1");
     signDocumentRequestDto.setPassword("p1");
     signDocumentRequestDto.setKey("k1");
-    SignDocumentRequestDto.ToSignDocument toSignDocument =
-        new SignDocumentRequestDto().new ToSignDocument();
+    ToSignDocument toSignDocument = new ToSignDocument();
     toSignDocument.setBytes("random-bytes");
     toSignDocument.setName("random-name");
     signDocumentRequestDto.setToSignDocument(toSignDocument);
@@ -116,8 +115,7 @@ class DocumentSignControllerTests {
     signDocumentRequestDto.setUsername("");
     signDocumentRequestDto.setPassword("p1");
     signDocumentRequestDto.setKey("k1");
-    SignDocumentRequestDto.ToSignDocument toSignDocument =
-        new SignDocumentRequestDto().new ToSignDocument();
+    ToSignDocument toSignDocument = new ToSignDocument();
     toSignDocument.setBytes("random-bytes");
     toSignDocument.setName("random-name");
     signDocumentRequestDto.setToSignDocument(toSignDocument);
@@ -169,8 +167,7 @@ class DocumentSignControllerTests {
     signDocumentRequestDto.setUsername("u1");
     signDocumentRequestDto.setPassword("");
     signDocumentRequestDto.setKey("k1");
-    SignDocumentRequestDto.ToSignDocument toSignDocument =
-        new SignDocumentRequestDto().new ToSignDocument();
+    ToSignDocument toSignDocument = new ToSignDocument();
     toSignDocument.setBytes("random-bytes");
     toSignDocument.setName("random-name");
     signDocumentRequestDto.setToSignDocument(toSignDocument);
@@ -222,8 +219,7 @@ class DocumentSignControllerTests {
     signDocumentRequestDto.setUsername("u1");
     signDocumentRequestDto.setPassword("p1");
     signDocumentRequestDto.setKey("");
-    SignDocumentRequestDto.ToSignDocument toSignDocument =
-        new SignDocumentRequestDto().new ToSignDocument();
+    ToSignDocument toSignDocument = new ToSignDocument();
     toSignDocument.setBytes("random-bytes");
     toSignDocument.setName("random-name");
     signDocumentRequestDto.setToSignDocument(toSignDocument);
@@ -274,8 +270,7 @@ class DocumentSignControllerTests {
     signDocumentRequestDto.setUsername("u1");
     signDocumentRequestDto.setPassword("p1");
     signDocumentRequestDto.setKey("k1");
-    SignDocumentRequestDto.ToSignDocument toSignDocument =
-        new SignDocumentRequestDto().new ToSignDocument();
+    ToSignDocument toSignDocument = new ToSignDocument();
     toSignDocument.setBytes("");
     toSignDocument.setName("random-name");
     signDocumentRequestDto.setToSignDocument(toSignDocument);
@@ -327,8 +322,7 @@ class DocumentSignControllerTests {
     signDocumentRequestDto.setUsername("u1");
     signDocumentRequestDto.setPassword("p1");
     signDocumentRequestDto.setKey("k1");
-    SignDocumentRequestDto.ToSignDocument toSignDocument =
-        new SignDocumentRequestDto().new ToSignDocument();
+    ToSignDocument toSignDocument = new ToSignDocument();
     toSignDocument.setBytes("random-bytes");
     toSignDocument.setName("");
     signDocumentRequestDto.setToSignDocument(toSignDocument);
