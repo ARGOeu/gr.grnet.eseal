@@ -86,7 +86,7 @@ class EsealApplicationTests {
     DSSDocument imageDocument =
         new InMemoryDocument(
             VisibleSignaturePropertiesBean.class.getResourceAsStream(
-                "/visible-signature/".concat("ste.jpeg")));
+                "/visible-signature/".concat("ste.jpg")));
 
     assertThat(this.visibleSignatureProperties.getImageDocument().getDigest(DigestAlgorithm.SHA256))
         .isEqualTo(imageDocument.getDigest(DigestAlgorithm.SHA256));
