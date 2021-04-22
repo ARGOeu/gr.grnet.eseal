@@ -81,7 +81,7 @@ The username/password pair maps to a specific eseal.
 Each username/password pair corresponds to a specific key.
 
 - `imageBytes(optional)` :  Custom image to be included into the visible signature and
-override the default.
+override the default in base64 encoded format.
 
 - `toSignDocument.bytes` : PDF document to be signed in base64 encoded format
 
