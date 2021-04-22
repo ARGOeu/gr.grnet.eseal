@@ -81,7 +81,7 @@ The username/password pair maps to a specific eseal.
 Each username/password pair corresponds to a specific key.
 
 - `imageBytes(optional)` :  Custom image to be included into the visible signature and
-override the default in base64 encoded format.
+override the default, in base64 encoded format.
 
 - `toSignDocument.bytes` : PDF document to be signed in base64 encoded format
 
@@ -108,6 +108,21 @@ override the default in base64 encoded format.
     "signedDocumentBytes": "JVBER..=="
 }
 ```
+
+### Handling of TOTP
+
+The generated tokens are being created with the use of the `SHA1 hashing algorithm`.
+They are `6 digits long` and have a
+`30 seconds duration`, counting from the beginning of the unix epoch.
+There are 2 TOTP tokens per minute, one from the `0th - 30th` second and one 
+from the `30th - 60th` second.
+In order to compensate for network latency we apply a fail safe mechanism of 5 seconds before
+we send any generated TOTP to the provider's backend, meaning that tokens acquired 
+between the `25th - 30th` and the `55th - 60th`
+seconds of a minute will be waited to expire so a new one can be generated, with enough remaining time,
+in order to give a higher success probability for the request.
+
+
 
 ### Errors
 Please refer to section [Errors](errors.md) to see all possible Errors
