@@ -57,6 +57,10 @@ class EsealApplicationTests {
     assertThat("/etc/eseal/conf.d/").isEqualTo(this.validationProperties.getLotlCacheDir());
     assertThat("https://ec.europa.eu/tools/lotl/eu-lotl.xml")
         .isEqualTo(this.validationProperties.getLotlUrl());
+    assertThat("extra-lotl.truststore.jks")
+        .isEqualTo(this.validationProperties.getExtraTrustStoreFile());
+    assertThat("extra-tl").isEqualTo(this.validationProperties.getExtraTrustStorePassword());
+    assertThat("JKS").isEqualTo(this.validationProperties.getExtraTrustStoreType());
   }
 
   @Test
