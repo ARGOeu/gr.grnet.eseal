@@ -4,6 +4,7 @@ import static net.logstash.logback.argument.StructuredArguments.f;
 
 import eu.europa.esig.dss.alert.ExceptionOnStatusAlert;
 import eu.europa.esig.dss.model.DSSException;
+import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.service.crl.OnlineCRLSource;
 import eu.europa.esig.dss.service.http.commons.CommonsDataLoader;
 import eu.europa.esig.dss.service.http.commons.FileCacheDataLoader;
@@ -29,8 +30,15 @@ import eu.europa.esig.dss.validation.CertificateVerifier;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
 import gr.grnet.eseal.config.ValidationProperties;
 import gr.grnet.eseal.logging.ServiceLogField;
+import gr.grnet.eseal.utils.Utils;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.security.KeyStore;
 import java.util.Arrays;
+import java.util.Enumeration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,7 +71,7 @@ public class DocumentValidatorLOTL {
    * material) and the certificate verifier that utilizes the trust sources to perform the document
    * validation
    */
-  public void initialize() {
+  public void initialize() throws Exception {
 
     // initialize the the tl validation job
     this.job = initializeTLValidationJob();
@@ -103,7 +111,7 @@ public class DocumentValidatorLOTL {
     return certificateVerifier;
   }
 
-  private TLValidationJob initializeTLValidationJob() {
+  private TLValidationJob initializeTLValidationJob() throws Exception {
     TLValidationJob job = new TLValidationJob();
     job.setListOfTrustedListSources(europeanLOTL());
     job.setOfflineDataLoader(offlineLoader());
@@ -116,12 +124,53 @@ public class DocumentValidatorLOTL {
     return job;
   }
 
-  private DSSFileLoader onlineLoader() {
+  private DSSFileLoader onlineLoader() throws Exception {
+
     FileCacheDataLoader onlineFileLoader = new FileCacheDataLoader();
     onlineFileLoader.setCacheExpirationTime(0);
-    onlineFileLoader.setDataLoader(new CommonsDataLoader());
     onlineFileLoader.setFileCacheDirectory(tlCacheDirectory());
+    onlineFileLoader.setDataLoader(onlineDataLoader());
+
     return onlineFileLoader;
+  }
+
+  private CommonsDataLoader onlineDataLoader() throws Exception {
+
+    // load the default java truststore
+    KeyStore javaDefaultTruststore = Utils.getJavaDefaultTrustStore();
+
+    // load the extra trust material truststore
+    KeyStore extraKeystore =
+        KeyStore.getInstance(this.validationProperties.getExtraTrustStoreType());
+    InputStream extraIs =
+        DocumentValidatorLOTL.class.getResourceAsStream(
+            "/".concat(this.validationProperties.getExtraTrustStoreFile()));
+    if (extraIs == null) {
+      throw new FileNotFoundException(
+          "Extra truststore "
+              + this.validationProperties.getExtraTrustStoreFile()
+              + " could not be loaded");
+    }
+    extraKeystore.load(
+        extraIs, this.validationProperties.getExtraTrustStorePassword().toCharArray());
+    // add the extra trust material to the java default one
+    Enumeration<String> e = extraKeystore.aliases();
+    while (e.hasMoreElements()) {
+      String a = e.nextElement();
+      javaDefaultTruststore.setEntry(a, extraKeystore.getEntry(a, null), null);
+    }
+
+    // convert the truststore to a byte output stream
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    javaDefaultTruststore.store(baos, "combined".toCharArray());
+
+    // load the combined truststore to the online data loader used by the validation job
+    CommonsDataLoader dataLoader = new CommonsDataLoader();
+    dataLoader.setSslTruststore(new InMemoryDocument(new ByteArrayInputStream(baos.toByteArray())));
+    dataLoader.setSslTruststoreType("JKS");
+    dataLoader.setSslTruststorePassword("combined");
+
+    return dataLoader;
   }
 
   private LOTLSource europeanLOTL() {

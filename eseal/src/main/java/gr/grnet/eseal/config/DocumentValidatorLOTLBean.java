@@ -1,5 +1,8 @@
 package gr.grnet.eseal.config;
 
+import static net.logstash.logback.argument.StructuredArguments.f;
+
+import gr.grnet.eseal.logging.ServiceLogField;
 import gr.grnet.eseal.validation.DocumentValidatorLOTL;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,7 +42,7 @@ public class DocumentValidatorLOTLBean {
   private int refreshInterval;
 
   @Autowired
-  public DocumentValidatorLOTLBean(ValidationProperties validationProperties) {
+  public DocumentValidatorLOTLBean(ValidationProperties validationProperties) throws Exception {
     this.lotlValidator = new DocumentValidatorLOTL(validationProperties);
     this.lotlValidator.initialize();
   }
@@ -54,7 +57,10 @@ public class DocumentValidatorLOTLBean {
       fixedDelayString = "${eseal.validation.lotl.refresh.interval}")
   public void refreshLOTL() {
     if (this.lotlRefreshEnable) {
-      LOGGER.info("Running online refresh for the " + refreshCounter + " time...");
+      LOGGER.info(
+          "Running online refresh for the {} time . . .",
+          refreshCounter,
+          f(ServiceLogField.builder().build()));
       this.lotlValidator().onlineLOTLRefresh();
       refreshCounter++;
     }

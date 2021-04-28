@@ -39,4 +39,16 @@ public class ValidationProperties {
   /** LOTL trust sources file system cache directory */
   @Value("${eseal.validation.lotl.cache.dir}")
   private String lotlCacheDir;
+
+  /** Extra trust material in order to access LOTL sources */
+  @Value("${eseal.validation.lotl.extra.truststore.file}")
+  private String extraTrustStoreFile;
+
+  /** Extra truststore password */
+  @Value("${eseal.validation.lotl.extra.truststore.password}")
+  private String extraTrustStorePassword;
+
+  /** Extra truststore type */
+  @Value("${eseal.validation.lotl.extra.truststore.type}")
+  private String extraTrustStoreType;
 }
