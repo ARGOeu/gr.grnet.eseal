@@ -12,6 +12,7 @@ import gr.grnet.eseal.config.RemoteProviderProperties;
 import gr.grnet.eseal.config.ValidationProperties;
 import gr.grnet.eseal.config.VisibleSignatureProperties;
 import gr.grnet.eseal.config.VisibleSignaturePropertiesBean;
+import gr.grnet.eseal.config.tsp.ApedTSPSourceProperties;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.Test;
@@ -31,17 +32,21 @@ class EsealApplicationTests {
 
   private VisibleSignatureProperties visibleSignatureProperties;
 
+  private ApedTSPSourceProperties apedTSPSourceProperties;
+
   @Autowired
   EsealApplicationTests(
       RemoteProviderProperties remoteProviderProperties,
       ValidationProperties validationProperties,
       DocumentValidatorLOTLBean documentValidatorLOTLBean,
-      VisibleSignatureProperties visibleSignatureProperties) {
+      VisibleSignatureProperties visibleSignatureProperties,
+      ApedTSPSourceProperties apedTSPSourceProperties) {
 
     this.remoteProviderProperties = remoteProviderProperties;
     this.validationProperties = validationProperties;
     this.documentValidatorLOTLBean = documentValidatorLOTLBean;
     this.visibleSignatureProperties = visibleSignatureProperties;
+    this.apedTSPSourceProperties = apedTSPSourceProperties;
   }
 
   @Test
@@ -61,6 +66,17 @@ class EsealApplicationTests {
         .isEqualTo(this.validationProperties.getExtraTrustStoreFile());
     assertThat("extra-tl").isEqualTo(this.validationProperties.getExtraTrustStorePassword());
     assertThat("JKS").isEqualTo(this.validationProperties.getExtraTrustStoreType());
+  }
+
+  @Test
+  void testApedTSPProperties() {
+    assertThat("https://timestamp.aped.gov.gr/qtss")
+        .isEqualTo(this.apedTSPSourceProperties.getUrl());
+    assertThat("aped.truststore.jks")
+        .isEqualTo(this.apedTSPSourceProperties.getTruststore().getFile());
+    assertThat("apedts").isEqualTo(this.apedTSPSourceProperties.getTruststore().getPassword());
+    assertThat("aped.truststore.jks")
+        .isEqualTo(this.apedTSPSourceProperties.getTruststore().getFile());
   }
 
   @Test
