@@ -14,5 +14,5 @@ public class RemoteProviderSignBufferRequest extends RemoteProviderTOTPRequest {
   private String bufferToSign;
 
   @JsonProperty("Flags")
-  private int flags = 545792;
+  private String flags = "544792";
 }
