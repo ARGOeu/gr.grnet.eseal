@@ -29,12 +29,12 @@ keywords:
  - `toTimestampDocument.name` : Placeholder name for the pdf document
 
  - `tspSource(optional)` : The timestamp server that generates the timestamped document. 
-The possible values are APED or HARICA. The default value is APED.
+The possible values are APED or HARICA. The default value is HARICA.
 
 
 ```json
 {
-  "tspSource" : "APED",
+  "tsaSource" : "APED",
   "toTimestampDocument" : {
     "bytes" : "JVBERi...",
     "name" : "important.pdf"

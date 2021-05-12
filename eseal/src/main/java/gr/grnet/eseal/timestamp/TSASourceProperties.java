@@ -1,4 +1,4 @@
-package gr.grnet.eseal.config.tsp;
+package gr.grnet.eseal.timestamp;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -7,9 +7,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-class TSPSourceProperties {
+class TSASourceProperties {
 
-  /** TSP url */
+  /** TSA url */
   private String url;
 
   private final Truststore truststore = new Truststore();
@@ -19,13 +19,13 @@ class TSPSourceProperties {
   @NoArgsConstructor
   public static class Truststore {
 
-    /** TSP truststore type */
+    /** TSA truststore type */
     private String type;
 
-    /** TSP truststore file name */
+    /** TSA truststore file name */
     private String file;
 
-    /** TSP truststore password */
+    /** TSA truststore password */
     private String password;
   }
 }

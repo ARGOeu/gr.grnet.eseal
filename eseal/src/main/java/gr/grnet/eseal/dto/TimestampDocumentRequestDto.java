@@ -1,7 +1,7 @@
 package gr.grnet.eseal.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import gr.grnet.eseal.config.tsp.TSPSourceEnum;
+import gr.grnet.eseal.timestamp.TSASourceEnum;
 import gr.grnet.eseal.utils.ValueOfEnum;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -21,10 +21,10 @@ public class TimestampDocumentRequestDto {
   private TimestampDocumentRequestDto.ToTimestampDocument toTimestampDocument;
 
   @ValueOfEnum(
-      enumClass = TSPSourceEnum.class,
-      message = "Possible values of property tspSource are [APED, HARICA]")
-  @JsonProperty("tspSource")
-  private String tspSource = "APED";
+      enumClass = TSASourceEnum.class,
+      message = "Possible values of property tsaSource are [APED, HARICA]")
+  @JsonProperty("tsaSource")
+  private String tsaSource = TSASourceEnum.HARICA.name();
 
   @Getter
   @Setter

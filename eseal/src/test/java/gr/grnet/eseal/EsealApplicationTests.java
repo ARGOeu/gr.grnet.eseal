@@ -12,7 +12,8 @@ import gr.grnet.eseal.config.RemoteProviderProperties;
 import gr.grnet.eseal.config.ValidationProperties;
 import gr.grnet.eseal.config.VisibleSignatureProperties;
 import gr.grnet.eseal.config.VisibleSignaturePropertiesBean;
-import gr.grnet.eseal.config.tsp.ApedTSPSourceProperties;
+import gr.grnet.eseal.timestamp.DefaultTSASourceProperties;
+import gr.grnet.eseal.timestamp.TSASourcePropertiesWithBasicAuth;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,9 @@ class EsealApplicationTests {
 
   private VisibleSignatureProperties visibleSignatureProperties;
 
-  private ApedTSPSourceProperties apedTSPSourceProperties;
+  private DefaultTSASourceProperties apedTSPSourceProperties;
+
+  private TSASourcePropertiesWithBasicAuth haricaTSPSourceProperties;
 
   @Autowired
   EsealApplicationTests(
@@ -40,13 +43,15 @@ class EsealApplicationTests {
       ValidationProperties validationProperties,
       DocumentValidatorLOTLBean documentValidatorLOTLBean,
       VisibleSignatureProperties visibleSignatureProperties,
-      ApedTSPSourceProperties apedTSPSourceProperties) {
+      DefaultTSASourceProperties apedTSPSourceProperties,
+      TSASourcePropertiesWithBasicAuth haricaTSPSourceProperties) {
 
     this.remoteProviderProperties = remoteProviderProperties;
     this.validationProperties = validationProperties;
     this.documentValidatorLOTLBean = documentValidatorLOTLBean;
     this.visibleSignatureProperties = visibleSignatureProperties;
     this.apedTSPSourceProperties = apedTSPSourceProperties;
+    this.haricaTSPSourceProperties = haricaTSPSourceProperties;
   }
 
   @Test
@@ -75,8 +80,22 @@ class EsealApplicationTests {
     assertThat("aped.truststore.jks")
         .isEqualTo(this.apedTSPSourceProperties.getTruststore().getFile());
     assertThat("apedts").isEqualTo(this.apedTSPSourceProperties.getTruststore().getPassword());
-    assertThat("aped.truststore.jks")
-        .isEqualTo(this.apedTSPSourceProperties.getTruststore().getFile());
+    assertThat("JKS").isEqualTo(this.apedTSPSourceProperties.getTruststore().getType());
+  }
+
+  @Test
+  void testHaricaTSPProperties() {
+    assertThat("https://qts.harica.gr").isEqualTo(this.haricaTSPSourceProperties.getUrl());
+    assertThat("harica.truststore.jks")
+        .isEqualTo(this.haricaTSPSourceProperties.getTruststore().getFile());
+    assertThat("harica-qtsa")
+        .isEqualTo(this.haricaTSPSourceProperties.getTruststore().getPassword());
+    assertThat("JKS").isEqualTo(this.haricaTSPSourceProperties.getTruststore().getType());
+    assertThat("qts.harica.gr").isEqualTo(this.haricaTSPSourceProperties.getHost());
+    assertThat(443).isEqualTo(this.haricaTSPSourceProperties.getPort());
+    assertThat("https").isEqualTo(this.haricaTSPSourceProperties.getScheme());
+    assertThat("test-user").isEqualTo(this.haricaTSPSourceProperties.getUsername());
+    assertThat("test-pass").isEqualTo(this.haricaTSPSourceProperties.getPassword());
   }
 
   @Test
