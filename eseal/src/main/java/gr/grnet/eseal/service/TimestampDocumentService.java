@@ -14,10 +14,10 @@ import eu.europa.esig.dss.service.http.commons.TimestampDataLoader;
 import eu.europa.esig.dss.service.ocsp.OnlineOCSPSource;
 import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
-import gr.grnet.eseal.config.tsp.TSPSourceEnum;
-import gr.grnet.eseal.config.tsp.TSPSourceFactory;
 import gr.grnet.eseal.exception.InternalServerErrorException;
 import gr.grnet.eseal.logging.ServiceLogField;
+import gr.grnet.eseal.timestamp.TSASourceEnum;
+import gr.grnet.eseal.timestamp.TSASourceRegistry;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,14 +29,14 @@ public class TimestampDocumentService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TimestampDocumentService.class);
 
-  private final TSPSourceFactory tspSourceFactory;
+  private final TSASourceRegistry tsaSourceRegistry;
 
   @Autowired
-  public TimestampDocumentService(TSPSourceFactory tspSourceFactory) {
-    this.tspSourceFactory = tspSourceFactory;
+  public TimestampDocumentService(TSASourceRegistry tsaSourceRegistry) {
+    this.tsaSourceRegistry = tsaSourceRegistry;
   }
 
-  public String timestampDocument(String document, TSPSourceEnum tspSourceEnum) {
+  public String timestampDocument(String document, TSASourceEnum tsaSourceEnum) {
 
     DSSDocument documentToTimestamp = new InMemoryDocument(Utils.fromBase64(document));
 
@@ -51,7 +51,7 @@ public class TimestampDocumentService {
 
     // Configure a PAdES service for PDF timestamping
     PAdESService service = new PAdESService(certificateVerifier);
-    service.setTspSource(tspSourceFactory.createTspSource(tspSourceEnum));
+    service.setTspSource(tsaSourceRegistry.getTSASource(tsaSourceEnum));
 
     String timestampedDocumentB64;
 

@@ -1,9 +1,9 @@
 package gr.grnet.eseal.api.v1;
 
-import gr.grnet.eseal.config.tsp.TSPSourceEnum;
 import gr.grnet.eseal.dto.TimestampDocumentRequestDto;
 import gr.grnet.eseal.dto.TimestampDocumentResponseDto;
 import gr.grnet.eseal.service.TimestampDocumentService;
+import gr.grnet.eseal.timestamp.TSASourceEnum;
 import javax.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,6 +27,6 @@ public class DocumentTimestampController {
     return new TimestampDocumentResponseDto(
         timestampDocumentService.timestampDocument(
             timestampDocumentRequestDto.getToTimestampDocument().getBytes(),
-            TSPSourceEnum.valueOf(timestampDocumentRequestDto.getTspSource())));
+            TSASourceEnum.valueOf(timestampDocumentRequestDto.getTsaSource())));
   }
 }
