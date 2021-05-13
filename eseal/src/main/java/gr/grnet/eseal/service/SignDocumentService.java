@@ -270,9 +270,29 @@ public class SignDocumentService {
                         logger))
                 .or(
                     RemoteHttpEsealClient.errorResponsePredicate(
+                        "Failed to get the URL of the OCSP server",
+                        field,
+                        (r) ->
+                            r.getErrorMessage()
+                                .contains(
+                                    "Failed to Sign, Error (0X90030233)-"
+                                        + "Failed to get the URL of the OCSP server."),
+                        new InternalServerErrorException(
+                            "Failed to get the URL of the OCSP server"),
+                        logger))
+                .or(
+                    RemoteHttpEsealClient.errorResponsePredicate(
                         "Invalid TOTP",
                         field,
-                        (r) -> r.getErrorMessage().contains("Failed to Sign"),
+                        (r) ->
+                            r.getErrorMessage()
+                                .contains(
+                                    "Failed to Sign, Error (0X900201E0)-"
+                                        + "Failed to verify the user password. "
+                                        + "Passwords should be in wide character representation. "
+                                        + "Password length in bytes includes "
+                                        + "the null terminator "
+                                        + "(two bytes in wide char representation)."),
                         new InvalidTOTPException(),
                         logger))
                 .or(

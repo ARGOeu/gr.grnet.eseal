@@ -91,7 +91,7 @@ public class DocumentValidatorLOTL {
 
   /**
    * onlineLOTLRefresh refreshes the content of the lotl trust source by pulling new material from
-   * the online lotl host
+   * the online lotl url
    */
   public void onlineLOTLRefresh() {
     this.job.onlineRefresh();

@@ -383,7 +383,10 @@ class RemoteProviderSignDocumentTests {
   @Test
   void TestDocumentSignInvalidExpiredTOTP() throws Exception {
 
-    String errMessage = "Failed to Sign";
+    String errMessage =
+        "Failed to Sign, Error (0X900201E0)-Failed to verify the user password. "
+            + "Passwords should be in wide character representation. "
+            + "Password length in bytes includes the null terminator (two bytes in wide char representation).";
 
     CloseableHttpResponse mockResponse =
         buildMockUnSuccessfulResponse(errMessage, HttpStatus.SC_OK);
@@ -396,6 +399,25 @@ class RemoteProviderSignDocumentTests {
             () -> this.signDocumentService.signDocument("doc", "u", "p", "k"));
 
     assertThat("Invalid key or expired TOTP").isEqualTo(exc.getMessage());
+  }
+
+  @Test
+  void TestDocumentSignOCSPError() throws Exception {
+
+    String errMessage =
+        "Failed to Sign, Error (0X90030233)-Failed to get the URL of the OCSP server.";
+
+    CloseableHttpResponse mockResponse =
+        buildMockUnSuccessfulResponse(errMessage, HttpStatus.SC_OK);
+
+    when(httpClient.execute(any())).thenReturn(mockResponse);
+
+    InternalServerErrorException exc =
+        Assertions.assertThrows(
+            InternalServerErrorException.class,
+            () -> this.signDocumentService.signDocument("doc", "u", "p", "k"));
+
+    assertThat("Failed to get the URL of the OCSP server").isEqualTo(exc.getMessage());
   }
 
   @Test
