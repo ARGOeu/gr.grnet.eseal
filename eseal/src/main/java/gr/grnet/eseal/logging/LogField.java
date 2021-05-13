@@ -1,6 +1,7 @@
 package gr.grnet.eseal.logging;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import gr.grnet.eseal.enums.LogType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

@@ -1,5 +1,6 @@
 package gr.grnet.eseal.timestamp;
 
+import gr.grnet.eseal.enums.TSASourceEnum;
 import gr.grnet.eseal.exception.APIException;
 import org.springframework.http.HttpStatus;
 

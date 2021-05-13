@@ -1,17 +1,21 @@
 package gr.grnet.eseal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gr.grnet.eseal.api.v1.DocumentSignController;
+import gr.grnet.eseal.config.RemoteProviderProperties;
 import gr.grnet.eseal.dto.SignDocumentRequestDto;
 import gr.grnet.eseal.dto.SignDocumentResponseDto;
 import gr.grnet.eseal.dto.ToSignDocument;
 import gr.grnet.eseal.exception.APIError;
 import gr.grnet.eseal.exception.InternalServerErrorException;
-import gr.grnet.eseal.service.SignDocumentService;
+import gr.grnet.eseal.service.RemoteSignDocumentService;
+import gr.grnet.eseal.service.SignDocumentServiceFactory;
+import gr.grnet.eseal.sign.RemoteProviderCertificates;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -22,14 +26,22 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(DocumentSignController.class)
+@ContextConfiguration(classes = {EsealApplication.class})
 class DocumentSignControllerTests {
 
   @Autowired private MockMvc mockMvc;
 
-  @MockBean private SignDocumentService signDocumentService;
+  @MockBean private RemoteSignDocumentService remoteSignDocumentService;
+
+  @MockBean private SignDocumentServiceFactory signDocumentServiceFactory;
+
+  @MockBean private RemoteProviderProperties remoteProviderProperties;
+
+  @MockBean private RemoteProviderCertificates remoteProviderCertificates;
 
   private final String signingPath = "/api/v1/signing/remoteSignDocument";
 
@@ -48,9 +60,10 @@ class DocumentSignControllerTests {
     toSignDocument.setName("random-name");
     signDocumentRequestDto.setToSignDocument(toSignDocument);
 
+    when(this.signDocumentServiceFactory.create(any())).thenReturn(remoteSignDocumentService);
+
     // mock the service response
-    when(this.signDocumentService.signDocument("random-bytes", "u1", "p1", "k1"))
-        .thenReturn("random-bytes");
+    when(this.remoteSignDocumentService.signDocument(any())).thenReturn("random-bytes");
 
     MockHttpServletResponse response =
         this.mockMvc
@@ -81,8 +94,10 @@ class DocumentSignControllerTests {
     toSignDocument.setName("random-name");
     signDocumentRequestDto.setToSignDocument(toSignDocument);
 
+    when(this.signDocumentServiceFactory.create(any())).thenReturn(remoteSignDocumentService);
+
     // mock the service response
-    when(this.signDocumentService.signDocument("random-bytes", "u1", "p1", "k1"))
+    when(this.remoteSignDocumentService.signDocument(any()))
         .thenAnswer(
             invocation -> {
               throw new InternalServerErrorException("Internal error");
