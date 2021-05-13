@@ -1,5 +1,10 @@
 package gr.grnet.eseal.exception;
 
+import static net.logstash.logback.argument.StructuredArguments.f;
+
+import gr.grnet.eseal.logging.ServiceLogField;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -11,6 +16,8 @@ import org.springframework.web.context.request.WebRequest;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
   // Handle errors regrading the validation of request fields
   @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -55,6 +62,9 @@ public class GlobalExceptionHandler {
   // Generic handler for any request that isn't being handled by the rest of the handlers
   @ExceptionHandler(Exception.class)
   public ResponseEntity<APIError> handleGenericException(Exception apiEx, WebRequest request) {
+    LOGGER.error(
+        "Internal error occurred",
+        f(ServiceLogField.builder().details(apiEx.getMessage()).build()));
     APIError errorResponse =
         new APIError(
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
