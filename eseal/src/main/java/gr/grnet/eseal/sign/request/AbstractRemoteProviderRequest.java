@@ -21,6 +21,8 @@ public abstract class AbstractRemoteProviderRequest {
 
   @JsonIgnore private String url;
 
+  @JsonIgnore private String description;
+
   public void setTOTP(String key, int waitForRefreshSeconds) {}
 
   public String toJSON() throws JsonProcessingException {

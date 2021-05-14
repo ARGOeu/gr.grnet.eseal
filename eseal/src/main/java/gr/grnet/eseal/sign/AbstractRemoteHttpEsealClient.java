@@ -64,7 +64,7 @@ public abstract class AbstractRemoteHttpEsealClient<
         } catch (InvalidTOTPException | InternalServerErrorException ie) {
           retryCount++;
           LOGGER.warn(
-              "Encountered an exception while trying to executeRemoteProviderRequestResponse",
+              "Encountered an exception while trying to execute " + request.getDescription(),
               f(ServiceLogField.builder().details(ie.getMessage()).build()));
           LOGGER.info(
               "Retrying for the {} time in {} seconds",
@@ -120,7 +120,7 @@ public abstract class AbstractRemoteHttpEsealClient<
       }
 
       LOGGER.info(
-          "Successful signing",
+          "Successful " + request.getDescription(),
           f(
               BackEndLogField.builder()
                   .backendHost(this.remoteProviderProperties.getEndpoint())

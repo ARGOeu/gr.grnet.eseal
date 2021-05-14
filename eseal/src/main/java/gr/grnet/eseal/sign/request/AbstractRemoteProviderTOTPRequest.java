@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class RemoteProviderTOTPRequest extends AbstractRemoteProviderRequest {
+public abstract class AbstractRemoteProviderTOTPRequest extends AbstractRemoteProviderRequest {
 
   @JsonProperty("SignPassword")
   private String signPassword;
