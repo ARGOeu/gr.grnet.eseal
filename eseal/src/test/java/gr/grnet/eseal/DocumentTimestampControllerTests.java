@@ -14,17 +14,26 @@ import gr.grnet.eseal.exception.InternalServerErrorException;
 import gr.grnet.eseal.service.TimestampDocumentService;
 import java.util.ArrayList;
 import java.util.List;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+import org.hibernate.validator.HibernateValidator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(DocumentTimestampController.class)
+@ContextConfiguration(
+    classes = {EsealApplication.class, DocumentTimestampControllerTests.TestConfig.class})
 public class DocumentTimestampControllerTests {
 
   @Autowired private MockMvc mockMvc;
@@ -35,6 +44,19 @@ public class DocumentTimestampControllerTests {
 
   private ObjectMapper objectMapper = new ObjectMapper();
 
+  @TestConfiguration
+  static class TestConfig {
+    @Bean
+    public Validator validator() {
+      ValidatorFactory validatorFactory =
+          Validation.byProvider(HibernateValidator.class)
+              .configure()
+              .failFast(true)
+              .buildValidatorFactory();
+      return validatorFactory.getValidator();
+    }
+  }
+
   @Test
   void TimestampDocumentSuccess() throws Exception {
 
@@ -43,14 +65,14 @@ public class DocumentTimestampControllerTests {
     TimestampDocumentRequestDto.ToTimestampDocument toTimestampDocument =
         new TimestampDocumentRequestDto.ToTimestampDocument();
     toTimestampDocument.setName("random-name");
-    toTimestampDocument.setBytes("random-bytes");
+    toTimestampDocument.setBytes("cmFuZG9tLWJ5dGVz");
 
     timestampDocumentRequestDto.setToTimestampDocument(toTimestampDocument);
 
     // mock the service response
     when(this.timestampDocumentService.timestampDocument(
-            "random-bytes", TSASourceEnum.valueOf(timestampDocumentRequestDto.getTsaSource())))
-        .thenReturn("random-bytes");
+            "cmFuZG9tLWJ5dGVz", TSASourceEnum.valueOf(timestampDocumentRequestDto.getTsaSource())))
+        .thenReturn("cmFuZG9tLWJ5dGVz");
 
     MockHttpServletResponse response =
         this.mockMvc
@@ -67,7 +89,7 @@ public class DocumentTimestampControllerTests {
             response.getContentAsString(), TimestampDocumentResponseDto.class);
     assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
     assertThat(timestampDocumentResponseDto.getTimestampedDocumentBytes())
-        .isEqualTo("random-bytes");
+        .isEqualTo("cmFuZG9tLWJ5dGVz");
   }
 
   @Test
@@ -78,13 +100,13 @@ public class DocumentTimestampControllerTests {
     TimestampDocumentRequestDto.ToTimestampDocument toTimestampDocument =
         new TimestampDocumentRequestDto.ToTimestampDocument();
     toTimestampDocument.setName("random-name");
-    toTimestampDocument.setBytes("random-bytes");
+    toTimestampDocument.setBytes("cmFuZG9tLWJ5dGVz");
 
     timestampDocumentRequestDto.setToTimestampDocument(toTimestampDocument);
 
     // mock the service response
     when(this.timestampDocumentService.timestampDocument(
-            "random-bytes", TSASourceEnum.valueOf(timestampDocumentRequestDto.getTsaSource())))
+            "cmFuZG9tLWJ5dGVz", TSASourceEnum.valueOf(timestampDocumentRequestDto.getTsaSource())))
         .thenAnswer(
             invocation -> {
               throw new InternalServerErrorException("Internal error");
@@ -122,11 +144,6 @@ public class DocumentTimestampControllerTests {
     toTimestampDocument.setBytes("");
 
     timestampDocumentRequestDto.setToTimestampDocument(toTimestampDocument);
-
-    // mock the service response
-    when(this.timestampDocumentService.timestampDocument(
-            "random-bytes", TSASourceEnum.valueOf(timestampDocumentRequestDto.getTsaSource())))
-        .thenReturn("random-bytes");
 
     MockHttpServletResponse responseEmptyField =
         this.mockMvc
@@ -176,14 +193,14 @@ public class DocumentTimestampControllerTests {
     TimestampDocumentRequestDto.ToTimestampDocument toTimestampDocument =
         new TimestampDocumentRequestDto.ToTimestampDocument();
     toTimestampDocument.setName("");
-    toTimestampDocument.setBytes("random-bytes");
+    toTimestampDocument.setBytes("cmFuZG9tLWJ5dGVz");
 
     timestampDocumentRequestDto.setToTimestampDocument(toTimestampDocument);
 
     // mock the service response
     when(this.timestampDocumentService.timestampDocument(
-            "random-bytes", TSASourceEnum.valueOf(timestampDocumentRequestDto.getTsaSource())))
-        .thenReturn("random-bytes");
+            "cmFuZG9tLWJ5dGVz", TSASourceEnum.valueOf(timestampDocumentRequestDto.getTsaSource())))
+        .thenReturn("cmFuZG9tLWJ5dGVz");
 
     MockHttpServletResponse responseEmptyField =
         this.mockMvc
@@ -224,6 +241,66 @@ public class DocumentTimestampControllerTests {
   }
 
   @Test
+  void TimestampDocumentMissingToTimestampDocument() throws Exception {
+
+    TimestampDocumentRequestDto timestampDocumentRequestDto = new TimestampDocumentRequestDto();
+
+    MockHttpServletResponse responseMissingToTimestampDocument =
+        this.mockMvc
+            .perform(
+                post(this.timestampingPath)
+                    .content(this.objectMapper.writeValueAsBytes(timestampDocumentRequestDto))
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON))
+            .andReturn()
+            .getResponse();
+
+    APIError apiError =
+        this.objectMapper.readValue(
+            responseMissingToTimestampDocument.getContentAsString(), APIError.class);
+    assertThat(responseMissingToTimestampDocument.getStatus())
+        .isEqualTo(HttpStatus.BAD_REQUEST.value());
+    assertThat(apiError.getApiErrorBody()).isNotNull();
+    assertThat(apiError.getApiErrorBody().getMessage())
+        .isEqualTo("Field toTimestampDocument cannot be empty");
+    assertThat(apiError.getApiErrorBody().getCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+    assertThat(apiError.getApiErrorBody().getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  void TimestampDocumentNotEncodedToSignDocument() throws Exception {
+
+    // case where the bytes field is not base64 encoded
+    TimestampDocumentRequestDto timestampDocumentRequestDto = new TimestampDocumentRequestDto();
+
+    TimestampDocumentRequestDto.ToTimestampDocument toTimestampDocument =
+        new TimestampDocumentRequestDto.ToTimestampDocument();
+    toTimestampDocument.setName("random-name");
+    toTimestampDocument.setBytes("random-bytes");
+
+    timestampDocumentRequestDto.setToTimestampDocument(toTimestampDocument);
+
+    MockHttpServletResponse responseMissingField =
+        this.mockMvc
+            .perform(
+                post(this.timestampingPath)
+                    .content(this.objectMapper.writeValueAsBytes(timestampDocumentRequestDto))
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON))
+            .andReturn()
+            .getResponse();
+
+    APIError apiError =
+        this.objectMapper.readValue(responseMissingField.getContentAsString(), APIError.class);
+    assertThat(responseMissingField.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+    assertThat(apiError.getApiErrorBody()).isNotNull();
+    assertThat(apiError.getApiErrorBody().getMessage())
+        .isEqualTo("Field toTimestampDocument.bytes should be encoded in base64 format");
+    assertThat(apiError.getApiErrorBody().getCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+    assertThat(apiError.getApiErrorBody().getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
   void TimestampDocumentInvalidTSPSource() throws Exception {
 
     TimestampDocumentRequestDto timestampDocumentRequestDto = new TimestampDocumentRequestDto();
@@ -231,7 +308,7 @@ public class DocumentTimestampControllerTests {
     TimestampDocumentRequestDto.ToTimestampDocument toTimestampDocument =
         new TimestampDocumentRequestDto.ToTimestampDocument();
     toTimestampDocument.setName("name");
-    toTimestampDocument.setBytes("random-bytes");
+    toTimestampDocument.setBytes("cmFuZG9tLWJ5dGVz");
 
     timestampDocumentRequestDto.setTsaSource("test");
 

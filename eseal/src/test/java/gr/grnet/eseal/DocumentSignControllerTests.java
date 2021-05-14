@@ -18,10 +18,16 @@ import gr.grnet.eseal.service.SignDocumentServiceFactory;
 import gr.grnet.eseal.sign.RemoteProviderCertificates;
 import java.util.ArrayList;
 import java.util.List;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+import org.hibernate.validator.HibernateValidator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,7 +36,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(DocumentSignController.class)
-@ContextConfiguration(classes = {EsealApplication.class})
+@ContextConfiguration(
+    classes = {EsealApplication.class, DocumentSignControllerTests.TestConfig.class})
 class DocumentSignControllerTests {
 
   @Autowired private MockMvc mockMvc;
@@ -47,6 +54,19 @@ class DocumentSignControllerTests {
 
   private ObjectMapper objectMapper = new ObjectMapper();
 
+  @TestConfiguration
+  static class TestConfig {
+    @Bean
+    public Validator validator() {
+      ValidatorFactory validatorFactory =
+          Validation.byProvider(HibernateValidator.class)
+              .configure()
+              .failFast(true)
+              .buildValidatorFactory();
+      return validatorFactory.getValidator();
+    }
+  }
+
   @Test
   void SignDocumentSuccess() throws Exception {
 
@@ -56,14 +76,14 @@ class DocumentSignControllerTests {
     signDocumentRequestDto.setPassword("p1");
     signDocumentRequestDto.setKey("k1");
     ToSignDocument toSignDocument = new ToSignDocument();
-    toSignDocument.setBytes("random-bytes");
+    toSignDocument.setBytes("cmFuZG9tLWJ5dGVz");
     toSignDocument.setName("random-name");
     signDocumentRequestDto.setToSignDocument(toSignDocument);
 
     when(this.signDocumentServiceFactory.create(any())).thenReturn(remoteSignDocumentService);
 
     // mock the service response
-    when(this.remoteSignDocumentService.signDocument(any())).thenReturn("random-bytes");
+    when(this.remoteSignDocumentService.signDocument(any())).thenReturn("cmFuZG9tLWJ5dGVz");
 
     MockHttpServletResponse response =
         this.mockMvc
@@ -78,7 +98,7 @@ class DocumentSignControllerTests {
     SignDocumentResponseDto signDocumentResponseDto =
         this.objectMapper.readValue(response.getContentAsString(), SignDocumentResponseDto.class);
     assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-    assertThat(signDocumentResponseDto.getSignedDocumentBytes()).isEqualTo("random-bytes");
+    assertThat(signDocumentResponseDto.getSignedDocumentBytes()).isEqualTo("cmFuZG9tLWJ5dGVz");
   }
 
   @Test
@@ -90,7 +110,7 @@ class DocumentSignControllerTests {
     signDocumentRequestDto.setPassword("p1");
     signDocumentRequestDto.setKey("k1");
     ToSignDocument toSignDocument = new ToSignDocument();
-    toSignDocument.setBytes("random-bytes");
+    toSignDocument.setBytes("cmFuZG9tLWJ5dGVz");
     toSignDocument.setName("random-name");
     signDocumentRequestDto.setToSignDocument(toSignDocument);
 
@@ -131,7 +151,7 @@ class DocumentSignControllerTests {
     signDocumentRequestDto.setPassword("p1");
     signDocumentRequestDto.setKey("k1");
     ToSignDocument toSignDocument = new ToSignDocument();
-    toSignDocument.setBytes("random-bytes");
+    toSignDocument.setBytes("cmFuZG9tLWJ5dGVz");
     toSignDocument.setName("random-name");
     signDocumentRequestDto.setToSignDocument(toSignDocument);
 
@@ -183,7 +203,7 @@ class DocumentSignControllerTests {
     signDocumentRequestDto.setPassword("");
     signDocumentRequestDto.setKey("k1");
     ToSignDocument toSignDocument = new ToSignDocument();
-    toSignDocument.setBytes("random-bytes");
+    toSignDocument.setBytes("cmFuZG9tLWJ5dGVz");
     toSignDocument.setName("random-name");
     signDocumentRequestDto.setToSignDocument(toSignDocument);
 
@@ -235,7 +255,7 @@ class DocumentSignControllerTests {
     signDocumentRequestDto.setPassword("p1");
     signDocumentRequestDto.setKey("");
     ToSignDocument toSignDocument = new ToSignDocument();
-    toSignDocument.setBytes("random-bytes");
+    toSignDocument.setBytes("cmFuZG9tLWJ5dGVz");
     toSignDocument.setName("random-name");
     signDocumentRequestDto.setToSignDocument(toSignDocument);
 
@@ -338,7 +358,7 @@ class DocumentSignControllerTests {
     signDocumentRequestDto.setPassword("p1");
     signDocumentRequestDto.setKey("k1");
     ToSignDocument toSignDocument = new ToSignDocument();
-    toSignDocument.setBytes("random-bytes");
+    toSignDocument.setBytes("cmFuZG9tLWJ5dGVz");
     toSignDocument.setName("");
     signDocumentRequestDto.setToSignDocument(toSignDocument);
 
@@ -407,6 +427,39 @@ class DocumentSignControllerTests {
     assertThat(apiError.getApiErrorBody()).isNotNull();
     assertThat(apiError.getApiErrorBody().getMessage())
         .isEqualTo("Field toSignDocument cannot be empty");
+    assertThat(apiError.getApiErrorBody().getCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+    assertThat(apiError.getApiErrorBody().getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  void SignDocumentNotEncodedToSignDocument() throws Exception {
+
+    // case where the bytes field is not base64 encoded
+    SignDocumentRequestDto signDocumentRequestDto = new SignDocumentRequestDto();
+    signDocumentRequestDto.setUsername("u1");
+    signDocumentRequestDto.setPassword("p1");
+    signDocumentRequestDto.setKey("k1");
+    ToSignDocument toSignDocument = new ToSignDocument();
+    toSignDocument.setBytes("random-bytes");
+    toSignDocument.setName("notBase64");
+    signDocumentRequestDto.setToSignDocument(toSignDocument);
+
+    MockHttpServletResponse responseMissingField =
+        this.mockMvc
+            .perform(
+                post(this.signingPath)
+                    .content(this.objectMapper.writeValueAsBytes(signDocumentRequestDto))
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON))
+            .andReturn()
+            .getResponse();
+
+    APIError apiError =
+        this.objectMapper.readValue(responseMissingField.getContentAsString(), APIError.class);
+    assertThat(responseMissingField.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+    assertThat(apiError.getApiErrorBody()).isNotNull();
+    assertThat(apiError.getApiErrorBody().getMessage())
+        .isEqualTo("Field toSignDocument.bytes should be encoded in base64 format");
     assertThat(apiError.getApiErrorBody().getCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
     assertThat(apiError.getApiErrorBody().getStatus()).isEqualTo(HttpStatus.BAD_REQUEST);
   }

@@ -4,7 +4,10 @@ import gr.grnet.eseal.dto.TimestampDocumentRequestDto;
 import gr.grnet.eseal.dto.TimestampDocumentResponseDto;
 import gr.grnet.eseal.enums.TSASourceEnum;
 import gr.grnet.eseal.service.TimestampDocumentService;
-import javax.validation.Valid;
+import gr.grnet.eseal.utils.validation.Base64RequestFieldCheckGroup;
+import gr.grnet.eseal.utils.validation.NotEmptyTimestampDocumentRequestFieldsCheckGroup;
+import gr.grnet.eseal.utils.validation.ValueOfEnumRequestFieldCheckGroup;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +25,14 @@ public class DocumentTimestampController {
 
   @PostMapping("/remoteTimestampDocument")
   public TimestampDocumentResponseDto timestampDocument(
-      @Valid @RequestBody TimestampDocumentRequestDto timestampDocumentRequestDto) {
+      @Validated(
+              value = {
+                NotEmptyTimestampDocumentRequestFieldsCheckGroup.class,
+                Base64RequestFieldCheckGroup.class,
+                ValueOfEnumRequestFieldCheckGroup.class
+              })
+          @RequestBody
+          TimestampDocumentRequestDto timestampDocumentRequestDto) {
 
     return new TimestampDocumentResponseDto(
         timestampDocumentService.timestampDocument(

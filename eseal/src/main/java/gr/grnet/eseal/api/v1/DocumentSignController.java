@@ -10,7 +10,8 @@ import gr.grnet.eseal.service.SignDocumentService;
 import gr.grnet.eseal.service.SignDocumentServiceFactory;
 import gr.grnet.eseal.sign.RemoteProviderCertificates;
 import gr.grnet.eseal.sign.response.RemoteProviderCertificatesResponse;
-import gr.grnet.eseal.utils.NotEmptySignDocumentRequestFieldsCheckGroup;
+import gr.grnet.eseal.utils.validation.Base64RequestFieldCheckGroup;
+import gr.grnet.eseal.utils.validation.NotEmptySignDocumentRequestFieldsCheckGroup;
 import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -39,7 +40,12 @@ public class DocumentSignController {
 
   @PostMapping("/remoteSignDocument")
   public SignDocumentResponseDto signDocument(
-      @Validated(NotEmptySignDocumentRequestFieldsCheckGroup.class) @RequestBody
+      @Validated(
+              value = {
+                NotEmptySignDocumentRequestFieldsCheckGroup.class,
+                Base64RequestFieldCheckGroup.class
+              })
+          @RequestBody
           SignDocumentRequestDto signDocumentRequest) {
 
     return new SignDocumentResponseDto(
@@ -56,7 +62,12 @@ public class DocumentSignController {
 
   @PostMapping("/remoteSignDocumentDetached")
   public SignDocumentResponseDto signDocumentDetached(
-      @Validated(NotEmptySignDocumentRequestFieldsCheckGroup.class) @RequestBody
+      @Validated(
+              value = {
+                NotEmptySignDocumentRequestFieldsCheckGroup.class,
+                Base64RequestFieldCheckGroup.class
+              })
+          @RequestBody
           SignDocumentDetachedRequestDto signDocumentRequest) {
 
     RemoteProviderCertificatesResponse userCertificates =

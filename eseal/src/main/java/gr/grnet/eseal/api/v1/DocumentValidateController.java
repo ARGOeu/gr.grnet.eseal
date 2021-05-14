@@ -3,7 +3,8 @@ package gr.grnet.eseal.api.v1;
 import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import gr.grnet.eseal.dto.ValidateDocumentRequestDto;
 import gr.grnet.eseal.service.ValidateDocumentService;
-import gr.grnet.eseal.utils.NotEmptyValidateDocumentRequestFieldsCheckGroup;
+import gr.grnet.eseal.utils.validation.Base64RequestFieldCheckGroup;
+import gr.grnet.eseal.utils.validation.NotEmptyValidateDocumentRequestFieldsCheckGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,7 +25,12 @@ public class DocumentValidateController {
 
   @PostMapping("/validateDocument")
   public WSReportsDTO validateDocument(
-      @Validated(NotEmptyValidateDocumentRequestFieldsCheckGroup.class) @RequestBody
+      @Validated(
+              value = {
+                NotEmptyValidateDocumentRequestFieldsCheckGroup.class,
+                Base64RequestFieldCheckGroup.class
+              })
+          @RequestBody
           ValidateDocumentRequestDto validateDocumentRequestDto) {
 
     return this.validateDocumentService.validateDocument(
