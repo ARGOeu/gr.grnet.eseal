@@ -94,7 +94,10 @@ public class AspectComponent {
                     Optional.ofNullable((Long) request.getAttribute("start_time"))
                         .orElse(System.currentTimeMillis())))
             .status(error.getStatusCode().toString())
-            .documentName(request.getSession().getAttribute("document_name").toString())
+            .documentName(
+                Optional.ofNullable(request.getSession().getAttribute("document_name"))
+                    .orElse("null-document")
+                    .toString())
             .build();
 
     getLogger(joinPoint)
