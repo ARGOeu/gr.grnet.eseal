@@ -1,4 +1,4 @@
-package gr.grnet.eseal.logging;
+package gr.grnet.eseal.enums;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 

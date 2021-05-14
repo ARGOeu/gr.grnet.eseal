@@ -8,16 +8,18 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.europa.esig.dss.model.DSSDocument;
 import eu.europa.esig.dss.model.DSSException;
-import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.pdf.PDFSignatureService;
+import eu.europa.esig.dss.utils.Utils;
 import gr.grnet.eseal.config.RemoteProviderProperties;
 import gr.grnet.eseal.config.VisibleSignatureProperties;
 import gr.grnet.eseal.config.VisibleSignaturePropertiesBean;
+import gr.grnet.eseal.dto.SignDocumentDto;
 import gr.grnet.eseal.exception.InternalServerErrorException;
 import gr.grnet.eseal.exception.InvalidTOTPException;
 import gr.grnet.eseal.exception.UnprocessableEntityException;
+import gr.grnet.eseal.service.RemoteSignDocumentService;
+import gr.grnet.eseal.service.RemoteSignDocumentServicePKCS7;
 import gr.grnet.eseal.service.SignDocumentService;
 import gr.grnet.eseal.sign.RemoteProviderCertificates;
 import gr.grnet.eseal.sign.RemoteProviderSignBuffer;
@@ -41,6 +43,7 @@ import org.apache.http.HttpVersion;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicStatusLine;
+import org.apache.pdfbox.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,11 +57,12 @@ class RemoteProviderSignDocumentTests {
 
   @Mock private CloseableHttpClient httpClient;
 
-  private SignDocumentService signDocumentService;
+  private RemoteProviderCertificates remoteProviderCertificates;
+  private RemoteSignDocumentServicePKCS7 remoteSignDocumentServiceDetachedPKCS7;
+  private RemoteSignDocumentService remoteSignDocumentService;
   private ObjectMapper objectMapper;
   private RemoteProviderSignDocument remoteProviderSignDocument;
   private RemoteProviderSignBuffer remoteProviderSignBuffer;
-  private RemoteProviderCertificates remoteProviderCertificates;
 
   @BeforeEach
   void setUp() {
@@ -79,13 +83,16 @@ class RemoteProviderSignDocumentTests {
         new VisibleSignaturePropertiesBean().visibleSignatureProperties();
 
     remoteProviderProperties.setRetryEnabled(false);
-    signDocumentService =
-        new SignDocumentService(
-            remoteProviderSignDocument,
-            remoteProviderSignBuffer,
-            remoteProviderCertificates,
+
+    remoteSignDocumentService =
+        new RemoteSignDocumentService(remoteProviderProperties, remoteProviderSignDocument);
+
+    remoteSignDocumentServiceDetachedPKCS7 =
+        new RemoteSignDocumentServicePKCS7(
+            visibleSignatureProperties,
             remoteProviderProperties,
-            visibleSignatureProperties);
+            remoteProviderSignBuffer,
+            remoteProviderCertificates);
   }
 
   @Test
@@ -98,7 +105,9 @@ class RemoteProviderSignDocumentTests {
 
     when(httpClient.execute(any())).thenReturn(mockResponse);
 
-    assertThat(this.signDocumentService.getSignerInfo("u", "p"))
+    assertThat(
+            SignDocumentService.getSignerInfo(
+                SignDocumentService.getUserCertificates("u", "p", "", remoteProviderCertificates)))
         .isEqualTo("test.example.com/unit-1");
   }
 
@@ -115,7 +124,10 @@ class RemoteProviderSignDocumentTests {
     InternalServerErrorException e =
         Assertions.assertThrows(
             InternalServerErrorException.class,
-            () -> this.signDocumentService.getSignerInfo("u", "p"));
+            () ->
+                SignDocumentService.getSignerInfo(
+                    SignDocumentService.getUserCertificates(
+                        "u", "p", "", remoteProviderCertificates)));
 
     assertThat(e.getMessage()).isEqualTo("Error with Signer's Certificate Subject");
   }
@@ -131,7 +143,14 @@ class RemoteProviderSignDocumentTests {
     when(httpClient.execute(any())).thenReturn(mockResponse);
 
     assertThat("document-data-bytes")
-        .isEqualTo(this.signDocumentService.signDocument(documentData, "u", "p", "k"));
+        .isEqualTo(
+            this.remoteSignDocumentService.signDocument(
+                SignDocumentDto.builder()
+                    .bytes(documentData)
+                    .username("u")
+                    .password("p")
+                    .key("k")
+                    .build()));
   }
 
   @TestOnlyIfTimezoneUTC
@@ -147,8 +166,8 @@ class RemoteProviderSignDocumentTests {
         RemoteProviderSignDocumentTests.class.getResourceAsStream(
             "/detached-sign-case/".concat("signed-detached-utc-si-img-b64-pdf.txt"));
 
-    DSSDocument imageDocument =
-        new InMemoryDocument(
+    byte[] imageBytes =
+        IOUtils.toByteArray(
             RemoteProviderSignDocumentTests.class.getResourceAsStream(
                 "/visible-signature/".concat("ste2.jpeg")));
 
@@ -176,14 +195,16 @@ class RemoteProviderSignDocumentTests {
 
     // we have prepared a detached signature for the signing time of 1617901835690
     assertThat(
-            this.signDocumentService.signDocumentDetached(
-                originalPDFB64,
-                "u",
-                "p",
-                "k",
-                calendar.getTime(),
-                "test.example.com/unit-1",
-                imageDocument))
+            this.remoteSignDocumentServiceDetachedPKCS7.signDocument(
+                SignDocumentDto.builder()
+                    .signingDate(calendar.getTime())
+                    .bytes(originalPDFB64)
+                    .username("u")
+                    .password("p")
+                    .key("k")
+                    .imageBytes(Utils.toBase64(imageBytes))
+                    .signerInfo("test.example.com/unit-1")
+                    .build()))
         .isEqualTo(signedPDFB64);
   }
 
@@ -224,8 +245,15 @@ class RemoteProviderSignDocumentTests {
 
     // we have prepared a detached signature for the signing time of 1617901835690
     assertThat(
-            this.signDocumentService.signDocumentDetached(
-                originalPDFB64, "u", "p", "k", calendar.getTime(), "", null))
+            this.remoteSignDocumentServiceDetachedPKCS7.signDocument(
+                SignDocumentDto.builder()
+                    .signingDate(calendar.getTime())
+                    .bytes(originalPDFB64)
+                    .username("u")
+                    .password("p")
+                    .key("k")
+                    .signerInfo("")
+                    .build()))
         .isEqualTo(signedPDFB64);
   }
 
@@ -261,13 +289,21 @@ class RemoteProviderSignDocumentTests {
         buildMockSuccessfulSignatureResponse(signatureB64, HttpStatus.SC_OK);
 
     when(httpClient.execute(any())).thenReturn(mockResponse);
+
     Calendar calendar = Calendar.getInstance();
     calendar.setTimeInMillis(Long.parseLong("1617901835690"));
 
     // we have prepared a detached signature for the signing time of 1617901835690
     assertThat(
-            this.signDocumentService.signDocumentDetached(
-                originalPDFB64, "u", "p", "k", calendar.getTime(), "", null))
+            this.remoteSignDocumentServiceDetachedPKCS7.signDocument(
+                SignDocumentDto.builder()
+                    .signingDate(calendar.getTime())
+                    .bytes(originalPDFB64)
+                    .username("u")
+                    .password("p")
+                    .signerInfo("")
+                    .key("k")
+                    .build()))
         .isEqualTo(signedPDFB64);
   }
 
@@ -284,8 +320,8 @@ class RemoteProviderSignDocumentTests {
         RemoteProviderSignDocumentTests.class.getResourceAsStream(
             "/detached-sign-case/".concat("signed-detached-athens-si-img-b64-pdf.txt"));
 
-    DSSDocument imageDocument =
-        new InMemoryDocument(
+    byte[] imageBytes =
+        IOUtils.toByteArray(
             RemoteProviderSignDocumentTests.class.getResourceAsStream(
                 "/visible-signature/".concat("ste2.jpeg")));
 
@@ -313,14 +349,16 @@ class RemoteProviderSignDocumentTests {
 
     // we have prepared a detached signature for the signing time of 1617901835690
     assertThat(
-            this.signDocumentService.signDocumentDetached(
-                originalPDFB64,
-                "u",
-                "p",
-                "k",
-                calendar.getTime(),
-                "test.example.com/unit-1",
-                imageDocument))
+            this.remoteSignDocumentServiceDetachedPKCS7.signDocument(
+                SignDocumentDto.builder()
+                    .signingDate(calendar.getTime())
+                    .bytes(originalPDFB64)
+                    .username("u")
+                    .password("p")
+                    .signerInfo("test.example.com/unit-1")
+                    .imageBytes(Utils.toBase64(imageBytes))
+                    .key("k")
+                    .build()))
         .isEqualTo(signedPDFB64);
   }
 
@@ -331,8 +369,15 @@ class RemoteProviderSignDocumentTests {
         Assertions.assertThrows(
             InternalServerErrorException.class,
             () ->
-                this.signDocumentService.signDocumentDetached(
-                    "invalid", "u", "p", "k", new Date(), "", null));
+                this.remoteSignDocumentServiceDetachedPKCS7.signDocument(
+                    SignDocumentDto.builder()
+                        .signingDate(new Date())
+                        .bytes("invalid")
+                        .username("u")
+                        .password("p")
+                        .signerInfo("")
+                        .key("k")
+                        .build()));
 
     assertThat("Could not compute document digest").isEqualTo(de.getMessage());
   }
@@ -350,15 +395,21 @@ class RemoteProviderSignDocumentTests {
     when(pdfSignatureService.sign(any(), any(), any())).thenThrow(DSSException.class);
 
     ReflectionTestUtils.setField(
-        this.signDocumentService, "pdfSignatureService", pdfSignatureService);
+        this.remoteSignDocumentServiceDetachedPKCS7, "pdfSignatureService", pdfSignatureService);
 
     InternalServerErrorException de =
         Assertions.assertThrows(
             InternalServerErrorException.class,
             () ->
-                this.signDocumentService.signDocumentDetached(
-                    "doc", "u", "p", "k", new Date(), "", null));
-
+                this.remoteSignDocumentServiceDetachedPKCS7.signDocument(
+                    SignDocumentDto.builder()
+                        .signingDate(new Date())
+                        .bytes("doc")
+                        .username("u")
+                        .password("p")
+                        .signerInfo("")
+                        .key("k")
+                        .build()));
     assertThat("Could not combine signature to original document").isEqualTo(de.getMessage());
   }
 
@@ -375,7 +426,14 @@ class RemoteProviderSignDocumentTests {
     UnprocessableEntityException exc =
         Assertions.assertThrows(
             UnprocessableEntityException.class,
-            () -> this.signDocumentService.signDocument("doc", "u", "p", "k"));
+            () ->
+                this.remoteSignDocumentService.signDocument(
+                    SignDocumentDto.builder()
+                        .bytes("doc")
+                        .username("u")
+                        .password("p")
+                        .key("k")
+                        .build()));
 
     assertThat("Wrong user credentials").isEqualTo(exc.getMessage());
   }
@@ -396,7 +454,14 @@ class RemoteProviderSignDocumentTests {
     UnprocessableEntityException exc =
         Assertions.assertThrows(
             InvalidTOTPException.class,
-            () -> this.signDocumentService.signDocument("doc", "u", "p", "k"));
+            () ->
+                this.remoteSignDocumentService.signDocument(
+                    SignDocumentDto.builder()
+                        .bytes("doc")
+                        .username("u")
+                        .password("p")
+                        .key("k")
+                        .build()));
 
     assertThat("Invalid key or expired TOTP").isEqualTo(exc.getMessage());
   }
@@ -415,7 +480,14 @@ class RemoteProviderSignDocumentTests {
     InternalServerErrorException exc =
         Assertions.assertThrows(
             InternalServerErrorException.class,
-            () -> this.signDocumentService.signDocument("doc", "u", "p", "k"));
+            () ->
+                this.remoteSignDocumentService.signDocument(
+                    SignDocumentDto.builder()
+                        .bytes("doc")
+                        .username("u")
+                        .password("p")
+                        .key("k")
+                        .build()));
 
     assertThat("Failed to get the URL of the OCSP server").isEqualTo(exc.getMessage());
   }
@@ -433,7 +505,14 @@ class RemoteProviderSignDocumentTests {
     InternalServerErrorException exc =
         Assertions.assertThrows(
             InternalServerErrorException.class,
-            () -> this.signDocumentService.signDocument("doc", "u", "p", "k"));
+            () ->
+                this.remoteSignDocumentService.signDocument(
+                    SignDocumentDto.builder()
+                        .bytes("doc")
+                        .username("u")
+                        .password("p")
+                        .key("k")
+                        .build()));
 
     assertThat("The user is locked and cannot logon").isEqualTo(exc.getMessage());
   }
@@ -452,7 +531,14 @@ class RemoteProviderSignDocumentTests {
     InternalServerErrorException exc =
         Assertions.assertThrows(
             InternalServerErrorException.class,
-            () -> this.signDocumentService.signDocument("doc", "u", "p", "k"));
+            () ->
+                this.remoteSignDocumentService.signDocument(
+                    SignDocumentDto.builder()
+                        .bytes("doc")
+                        .username("u")
+                        .password("p")
+                        .key("k")
+                        .build()));
 
     assertThat("Connection to Time Stamping service problem").isEqualTo(exc.getMessage());
   }
@@ -470,7 +556,14 @@ class RemoteProviderSignDocumentTests {
     InternalServerErrorException exc =
         Assertions.assertThrows(
             InternalServerErrorException.class,
-            () -> this.signDocumentService.signDocument("doc", "u", "p", "k"));
+            () ->
+                this.remoteSignDocumentService.signDocument(
+                    SignDocumentDto.builder()
+                        .bytes("doc")
+                        .username("u")
+                        .password("p")
+                        .key("k")
+                        .build()));
 
     assertThat("Error with signing backend").isEqualTo(exc.getMessage());
   }
@@ -492,7 +585,7 @@ class RemoteProviderSignDocumentTests {
     remoteProviderSignDocument =
         new RemoteProviderSignDocument(remoteProviderProperties, httpClient);
 
-    signDocumentService.setRemoteProviderSignDocument(remoteProviderSignDocument);
+    remoteSignDocumentService.setRemoteProviderSignDocument(remoteProviderSignDocument);
 
     when(httpClient.execute(any())).thenThrow(IOException.class);
 
@@ -501,7 +594,14 @@ class RemoteProviderSignDocumentTests {
     InternalServerErrorException exc =
         Assertions.assertThrows(
             InternalServerErrorException.class,
-            () -> this.signDocumentService.signDocument("doc", "u", "p", "k"));
+            () ->
+                this.remoteSignDocumentService.signDocument(
+                    SignDocumentDto.builder()
+                        .bytes("doc")
+                        .username("u")
+                        .password("p")
+                        .key("k")
+                        .build()));
 
     long end = Instant.now().getEpochSecond();
 
@@ -517,7 +617,14 @@ class RemoteProviderSignDocumentTests {
     InternalServerErrorException exc =
         Assertions.assertThrows(
             InternalServerErrorException.class,
-            () -> this.signDocumentService.signDocument("doc", "u", "p", "k"));
+            () ->
+                this.remoteSignDocumentService.signDocument(
+                    SignDocumentDto.builder()
+                        .bytes("doc")
+                        .username("u")
+                        .password("p")
+                        .key("k")
+                        .build()));
 
     assertThat("Signing backend unavailable").isEqualTo(exc.getMessage());
   }
@@ -539,21 +646,26 @@ class RemoteProviderSignDocumentTests {
   //      assertThat("TOTP generator has encountered an error").isEqualTo(exc.getMessage());
   //    }
   //
-  //    @Test
-  //    void TestDocumentSignInterruptedException() throws Exception {
+  //      @Test
+  //      void TestDocumentSignInterruptedException() throws Exception {
   //
-  //      when(httpClient.execute(any()))
-  //          .thenAnswer(
-  //              invocation -> {
-  //                throw new InterruptedException("Interruption exception");
-  //              });
-  //      InternalServerErrorException exc =
-  //          Assertions.assertThrows(
-  //              InternalServerErrorException.class,
-  //              () -> this.signDocumentService.signDocument("doc", "u", "p", "k"));
+  //        when(httpClient.execute(any()))
+  //            .thenAnswer(
+  //                invocation -> {
+  //                  throw new InterruptedException("Interruption exception");
+  //                });
+  //        InternalServerErrorException exc =
+  //            Assertions.assertThrows(
+  //                InternalServerErrorException.class,
+  //                () -> this.remoteSignDocumentService.signDocument(SignDocumentDto.builder()
+  //                        .bytes("doc")
+  //                        .username("u")
+  //                        .password("p")
+  //                        .key("k")
+  //                        .build()));
   //
-  //      assertThat("Internal thread error").isEqualTo(exc.getMessage());
-  //    }
+  //        assertThat("Internal thread error").isEqualTo(exc.getMessage());
+  //      }
 
   private CloseableHttpResponse buildMockSuccessfulSignatureResponse(
       String signature, int httpStatus) throws IOException {

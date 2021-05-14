@@ -8,8 +8,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class RemoteProviderSignBufferRequest extends RemoteProviderTOTPRequest {
+public class RemoteProviderSignBufferPKCS1Request extends RemoteProviderSignBufferRequest {
 
-  @JsonProperty("BufferToSign")
-  private String bufferToSign;
+  @JsonProperty("Flags")
+  private String flags = "541696";
 }

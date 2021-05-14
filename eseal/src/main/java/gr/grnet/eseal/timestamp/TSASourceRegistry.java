@@ -8,6 +8,7 @@ import eu.europa.esig.dss.service.SecureRandomNonceSource;
 import eu.europa.esig.dss.service.http.commons.TimestampDataLoader;
 import eu.europa.esig.dss.service.tsp.OnlineTSPSource;
 import eu.europa.esig.dss.spi.x509.tsp.TSPSource;
+import gr.grnet.eseal.enums.TSASourceEnum;
 import gr.grnet.eseal.logging.ServiceLogField;
 import java.util.HashMap;
 import org.slf4j.Logger;

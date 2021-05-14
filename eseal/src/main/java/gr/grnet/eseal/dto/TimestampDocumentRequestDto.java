@@ -1,7 +1,7 @@
 package gr.grnet.eseal.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import gr.grnet.eseal.timestamp.TSASourceEnum;
+import gr.grnet.eseal.enums.TSASourceEnum;
 import gr.grnet.eseal.utils.ValueOfEnum;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;

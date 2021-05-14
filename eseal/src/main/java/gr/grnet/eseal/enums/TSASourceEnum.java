@@ -1,4 +1,4 @@
-package gr.grnet.eseal.timestamp;
+package gr.grnet.eseal.enums;
 
 public enum TSASourceEnum {
   APED,
