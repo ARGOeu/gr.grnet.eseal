@@ -5,6 +5,7 @@ import gr.grnet.eseal.dto.ValidateDocumentRequestDto;
 import gr.grnet.eseal.service.ValidateDocumentService;
 import gr.grnet.eseal.utils.validation.Base64RequestFieldCheckGroup;
 import gr.grnet.eseal.utils.validation.NotEmptyValidateDocumentRequestFieldsCheckGroup;
+import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,7 +32,10 @@ public class DocumentValidateController {
                 Base64RequestFieldCheckGroup.class
               })
           @RequestBody
-          ValidateDocumentRequestDto validateDocumentRequestDto) {
+          ValidateDocumentRequestDto validateDocumentRequestDto,
+      HttpSession session) {
+
+    session.setAttribute("document_name", validateDocumentRequestDto.getSignedDocument().getName());
 
     return this.validateDocumentService.validateDocument(
         validateDocumentRequestDto.getSignedDocument().getBytes(),

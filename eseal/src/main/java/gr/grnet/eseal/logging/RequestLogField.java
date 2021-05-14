@@ -19,12 +19,17 @@ public class RequestLogField extends LogField {
 
   private String status;
 
+  @JsonProperty("document_name")
+  private String documentName;
+
   @Builder
-  public RequestLogField(String processingTime, String method, String path, String status) {
+  public RequestLogField(
+      String processingTime, String method, String path, String status, String documentName) {
     super(LogType.REQUEST_LOG);
     this.processingTime = processingTime;
     this.method = method;
     this.path = path;
     this.status = status;
+    this.documentName = documentName;
   }
 }

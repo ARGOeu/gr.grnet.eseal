@@ -7,6 +7,7 @@ import gr.grnet.eseal.service.TimestampDocumentService;
 import gr.grnet.eseal.utils.validation.Base64RequestFieldCheckGroup;
 import gr.grnet.eseal.utils.validation.NotEmptyTimestampDocumentRequestFieldsCheckGroup;
 import gr.grnet.eseal.utils.validation.ValueOfEnumRequestFieldCheckGroup;
+import javax.servlet.http.HttpSession;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,7 +33,11 @@ public class DocumentTimestampController {
                 ValueOfEnumRequestFieldCheckGroup.class
               })
           @RequestBody
-          TimestampDocumentRequestDto timestampDocumentRequestDto) {
+          TimestampDocumentRequestDto timestampDocumentRequestDto,
+      HttpSession session) {
+
+    session.setAttribute(
+        "document_name", timestampDocumentRequestDto.getToTimestampDocument().getName());
 
     return new TimestampDocumentResponseDto(
         timestampDocumentService.timestampDocument(

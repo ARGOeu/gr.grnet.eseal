@@ -55,6 +55,7 @@ public class AspectComponent {
             .method(request.getMethod())
             .processingTime(Utils.formatTimePeriod(start))
             .status(HttpStatus.OK.toString())
+            .documentName(request.getSession().getAttribute("document_name").toString())
             .build();
 
     getLogger(joinPoint).info("Request completed", f(field));
@@ -93,6 +94,7 @@ public class AspectComponent {
                     Optional.ofNullable((Long) request.getAttribute("start_time"))
                         .orElse(System.currentTimeMillis())))
             .status(error.getStatusCode().toString())
+            .documentName(request.getSession().getAttribute("document_name").toString())
             .build();
 
     getLogger(joinPoint)

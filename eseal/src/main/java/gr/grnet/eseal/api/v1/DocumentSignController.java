@@ -13,6 +13,7 @@ import gr.grnet.eseal.sign.response.RemoteProviderCertificatesResponse;
 import gr.grnet.eseal.utils.validation.Base64RequestFieldCheckGroup;
 import gr.grnet.eseal.utils.validation.NotEmptySignDocumentRequestFieldsCheckGroup;
 import java.util.Date;
+import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,17 +47,20 @@ public class DocumentSignController {
                 Base64RequestFieldCheckGroup.class
               })
           @RequestBody
-          SignDocumentRequestDto signDocumentRequest) {
+          SignDocumentRequestDto signDocumentRequestDto,
+      HttpSession session) {
+
+    session.setAttribute("document_name", signDocumentRequestDto.getToSignDocument().getName());
 
     return new SignDocumentResponseDto(
         this.signDocumentServiceFactory
             .create(Sign.REMOTE_SIGN)
             .signDocument(
                 SignDocumentDto.builder()
-                    .bytes(signDocumentRequest.getToSignDocument().getBytes())
-                    .username(signDocumentRequest.getUsername())
-                    .password(signDocumentRequest.getPassword())
-                    .key(signDocumentRequest.getKey())
+                    .bytes(signDocumentRequestDto.getToSignDocument().getBytes())
+                    .username(signDocumentRequestDto.getUsername())
+                    .password(signDocumentRequestDto.getPassword())
+                    .key(signDocumentRequestDto.getKey())
                     .build()));
   }
 
@@ -68,12 +72,16 @@ public class DocumentSignController {
                 Base64RequestFieldCheckGroup.class
               })
           @RequestBody
-          SignDocumentDetachedRequestDto signDocumentRequest) {
+          SignDocumentDetachedRequestDto signDocumentDetachedRequestDto,
+      HttpSession session) {
+
+    session.setAttribute(
+        "document_name", signDocumentDetachedRequestDto.getToSignDocument().getName());
 
     RemoteProviderCertificatesResponse userCertificates =
         SignDocumentService.getUserCertificates(
-            signDocumentRequest.getUsername(),
-            signDocumentRequest.getPassword(),
+            signDocumentDetachedRequestDto.getUsername(),
+            signDocumentDetachedRequestDto.getPassword(),
             this.remoteProviderProperties.getEndpoint(),
             this.remoteProviderCertificates);
 
@@ -82,11 +90,11 @@ public class DocumentSignController {
             .create(Sign.PKCS1)
             .signDocument(
                 SignDocumentDto.builder()
-                    .key(signDocumentRequest.getKey())
-                    .username(signDocumentRequest.getUsername())
-                    .password(signDocumentRequest.getPassword())
-                    .bytes(signDocumentRequest.getToSignDocument().getBytes())
-                    .imageBytes(signDocumentRequest.getImageBytes())
+                    .key(signDocumentDetachedRequestDto.getKey())
+                    .username(signDocumentDetachedRequestDto.getUsername())
+                    .password(signDocumentDetachedRequestDto.getPassword())
+                    .bytes(signDocumentDetachedRequestDto.getToSignDocument().getBytes())
+                    .imageBytes(signDocumentDetachedRequestDto.getImageBytes())
                     .signingDate(new Date())
                     .signerInfo(SignDocumentService.getSignerInfo(userCertificates))
                     .certificateList(SignDocumentService.getCertificatesToken(userCertificates))
