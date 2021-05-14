@@ -2,13 +2,12 @@ package gr.grnet.eseal.sign.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
-public class RemoteProviderSignBufferRequest extends RemoteProviderTOTPRequest {
+public abstract class AbstractRemoteProviderSignBufferRequest
+    extends AbstractRemoteProviderTOTPRequest {
 
   @JsonProperty("BufferToSign")
   private String bufferToSign;

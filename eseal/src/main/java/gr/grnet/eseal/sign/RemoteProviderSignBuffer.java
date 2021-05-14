@@ -1,7 +1,7 @@
 package gr.grnet.eseal.sign;
 
 import gr.grnet.eseal.config.RemoteProviderProperties;
-import gr.grnet.eseal.sign.request.RemoteProviderSignBufferRequest;
+import gr.grnet.eseal.sign.request.AbstractRemoteProviderSignBufferRequest;
 import gr.grnet.eseal.sign.response.RemoteProviderSignBufferResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.springframework.stereotype.Component;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class RemoteProviderSignBuffer
     extends AbstractRemoteHttpEsealClient<
-        RemoteProviderSignBufferRequest, RemoteProviderSignBufferResponse> {
+        AbstractRemoteProviderSignBufferRequest, RemoteProviderSignBufferResponse> {
 
   public RemoteProviderSignBuffer(
       RemoteProviderProperties remoteProviderProperties, CloseableHttpClient httpClient) {
