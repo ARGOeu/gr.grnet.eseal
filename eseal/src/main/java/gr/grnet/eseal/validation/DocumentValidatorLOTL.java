@@ -129,12 +129,12 @@ public class DocumentValidatorLOTL {
     FileCacheDataLoader onlineFileLoader = new FileCacheDataLoader();
     onlineFileLoader.setCacheExpirationTime(0);
     onlineFileLoader.setFileCacheDirectory(tlCacheDirectory());
-    onlineFileLoader.setDataLoader(onlineDataLoader());
+    onlineFileLoader.setDataLoader(onlineLOTLDataLoader());
 
     return onlineFileLoader;
   }
 
-  private CommonsDataLoader onlineDataLoader() throws Exception {
+  public CommonsDataLoader onlineLOTLDataLoader() throws Exception {
 
     // load the default java truststore
     KeyStore javaDefaultTruststore = Utils.getJavaDefaultTrustStore();
