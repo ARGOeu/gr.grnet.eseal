@@ -6,16 +6,16 @@
 <meta name="generator" content="Docusaurus v2.0.0-alpha.70">
 <link rel="alternate" type="application/rss+xml" href="/gr.grnet.eseal/blog/rss.xml" title="E-SEAL Module Blog RSS Feed">
 <link rel="alternate" type="application/atom+xml" href="/gr.grnet.eseal/blog/atom.xml" title="E-SEAL Module Blog Atom Feed"><title data-react-helmet="true">PDF Signing API Calls | E-SEAL Module</title><meta data-react-helmet="true" name="twitter:card" content="summary_large_image"><meta data-react-helmet="true" name="docusaurus_locale" content="en"><meta data-react-helmet="true" name="docusaurus_version" content="current"><meta data-react-helmet="true" name="docusaurus_tag" content="docs-default-current"><meta data-react-helmet="true" property="og:title" content="PDF Signing API Calls | E-SEAL Module"><meta data-react-helmet="true" name="description" content="POST - Sign a PDF document"><meta data-react-helmet="true" property="og:description" content="POST - Sign a PDF document"><meta data-react-helmet="true" name="keywords" content="eseal,e-seal,signing,api,doc,docs,documentation,documents,pdf,grnet"><meta data-react-helmet="true" property="og:url" content="https://argoeu.github.io/gr.grnet.eseal/docs/signing"><link data-react-helmet="true" rel="shortcut icon" href="/gr.grnet.eseal/img/grnet-favicon.png"><link data-react-helmet="true" rel="canonical" href="https://argoeu.github.io/gr.grnet.eseal/docs/signing"><link rel="stylesheet" href="/gr.grnet.eseal/styles.457accf9.css">
-<link rel="preload" href="/gr.grnet.eseal/styles.35dea893.js" as="script">
-<link rel="preload" href="/gr.grnet.eseal/runtime~main.07c64d17.js" as="script">
-<link rel="preload" href="/gr.grnet.eseal/main.a8baa995.js" as="script">
-<link rel="preload" href="/gr.grnet.eseal/common.02545321.js" as="script">
-<link rel="preload" href="/gr.grnet.eseal/2.6149856b.js" as="script">
-<link rel="preload" href="/gr.grnet.eseal/14.462b9299.js" as="script">
-<link rel="preload" href="/gr.grnet.eseal/15.66c488c3.js" as="script">
-<link rel="preload" href="/gr.grnet.eseal/935f2afb.f184f465.js" as="script">
-<link rel="preload" href="/gr.grnet.eseal/17896441.9c9a0b0d.js" as="script">
-<link rel="preload" href="/gr.grnet.eseal/09aeabed.15a658f1.js" as="script">
+<link rel="preload" href="/gr.grnet.eseal/styles.c721ef1e.js" as="script">
+<link rel="preload" href="/gr.grnet.eseal/runtime~main.5284d9ce.js" as="script">
+<link rel="preload" href="/gr.grnet.eseal/main.64a1ccfc.js" as="script">
+<link rel="preload" href="/gr.grnet.eseal/common.94b3a53d.js" as="script">
+<link rel="preload" href="/gr.grnet.eseal/2.e7a95a2a.js" as="script">
+<link rel="preload" href="/gr.grnet.eseal/14.11b6c70e.js" as="script">
+<link rel="preload" href="/gr.grnet.eseal/15.bc557315.js" as="script">
+<link rel="preload" href="/gr.grnet.eseal/935f2afb.f789d72d.js" as="script">
+<link rel="preload" href="/gr.grnet.eseal/17896441.b5530ea8.js" as="script">
+<link rel="preload" href="/gr.grnet.eseal/09aeabed.50b42659.js" as="script">
 </head>
 <body>
 <script>!function(){function t(t){document.documentElement.setAttribute("data-theme",t)}var e=function(){var t=null;try{t=localStorage.getItem("theme")}catch(t){}return t}();t(null!==e?e:"light")}()</script><div id="__docusaurus">
@@ -39,15 +39,15 @@ we send any generated TOTP to the provider&#x27;s backend, meaning that tokens a
 between the <code>25th - 30th</code> and the <code>55th - 60th</code>
 seconds of a minute will be waited to expire so a new one can be generated, with enough remaining time,
 in order to give a higher success probability for the request.</p><h3><a aria-hidden="true" tabindex="-1" class="anchor enhancedAnchor_prK2" id="errors"></a>Errors<a class="hash-link" href="#errors" title="Direct link to heading">#</a></h3><p>Please refer to section <a href="/gr.grnet.eseal/docs/errors">Errors</a> to see all possible Errors</p></div></article><div class="margin-vert--lg"><nav class="pagination-nav" aria-label="Blog list page navigation"><div class="pagination-nav__item"><a class="pagination-nav__link" href="/gr.grnet.eseal/docs/"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">« E-seal REST API Documentation</div></a></div><div class="pagination-nav__item pagination-nav__item--next"><a class="pagination-nav__link" href="/gr.grnet.eseal/docs/validation"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">PDF Validation API Calls »</div></a></div></nav></div></div></div><div class="col col--3"><div class="tableOfContents_2xL- thin-scrollbar"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#post---sign-a-pdf-document" class="table-of-contents__link">POST - Sign a PDF document</a><ul><li><a href="#request" class="table-of-contents__link">Request</a></li><li><a href="#request-body" class="table-of-contents__link">Request Body</a></li><li><a href="#response-body" class="table-of-contents__link">Response Body</a></li></ul></li><li><a href="#post---sign-a-pdf-document-detached" class="table-of-contents__link">POST - Sign a PDF document detached</a><ul><li><a href="#request-1" class="table-of-contents__link">Request</a></li><li><a href="#request-body-1" class="table-of-contents__link">Request Body</a></li><li><a href="#response-body-1" class="table-of-contents__link">Response Body</a></li><li><a href="#handling-of-totp" class="table-of-contents__link">Handling of TOTP</a></li><li><a href="#errors" class="table-of-contents__link">Errors</a></li></ul></li></ul></div></div></div></div></main></div></div><footer class="footer footer--dark"><div class="container"><div class="footer__bottom text--center"><div class="margin-bottom--sm"><a href="http://www.grnet.gr/" target="_blank" rel="noopener noreferrer" class="footerLogoLink_31Aa"><img class="footer__logo" alt="GRNET" src="/gr.grnet.eseal/img/grnet-logo.png"></a></div><div class="footer__copyright">Copyright © 2021 <a href="http://www.grnet.gr/"> GRNET </a></div></div></div></footer></div>
-<script src="/gr.grnet.eseal/styles.35dea893.js"></script>
-<script src="/gr.grnet.eseal/runtime~main.07c64d17.js"></script>
-<script src="/gr.grnet.eseal/main.a8baa995.js"></script>
-<script src="/gr.grnet.eseal/common.02545321.js"></script>
-<script src="/gr.grnet.eseal/2.6149856b.js"></script>
-<script src="/gr.grnet.eseal/14.462b9299.js"></script>
-<script src="/gr.grnet.eseal/15.66c488c3.js"></script>
-<script src="/gr.grnet.eseal/935f2afb.f184f465.js"></script>
-<script src="/gr.grnet.eseal/17896441.9c9a0b0d.js"></script>
-<script src="/gr.grnet.eseal/09aeabed.15a658f1.js"></script>
+<script src="/gr.grnet.eseal/styles.c721ef1e.js"></script>
+<script src="/gr.grnet.eseal/runtime~main.5284d9ce.js"></script>
+<script src="/gr.grnet.eseal/main.64a1ccfc.js"></script>
+<script src="/gr.grnet.eseal/common.94b3a53d.js"></script>
+<script src="/gr.grnet.eseal/2.e7a95a2a.js"></script>
+<script src="/gr.grnet.eseal/14.11b6c70e.js"></script>
+<script src="/gr.grnet.eseal/15.bc557315.js"></script>
+<script src="/gr.grnet.eseal/935f2afb.f789d72d.js"></script>
+<script src="/gr.grnet.eseal/17896441.b5530ea8.js"></script>
+<script src="/gr.grnet.eseal/09aeabed.50b42659.js"></script>
 </body>
 </html>
