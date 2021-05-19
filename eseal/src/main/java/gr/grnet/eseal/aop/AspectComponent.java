@@ -41,11 +41,19 @@ public class AspectComponent {
   @Around("restController()")
   public Object log(ProceedingJoinPoint joinPoint) throws Throwable {
 
+    MDC.put("request_id", String.valueOf(UUID.randomUUID()));
+
+    RequestLogField f =
+        RequestLogField.builder()
+            .path(request.getServletPath())
+            .method(request.getMethod())
+            .build();
+
+    getLogger(joinPoint).info("New Request", f(f));
+
     long start = System.currentTimeMillis();
 
     request.setAttribute("start_time", start);
-
-    MDC.put("request_id", String.valueOf(UUID.randomUUID()));
 
     Object object = joinPoint.proceed();
 
