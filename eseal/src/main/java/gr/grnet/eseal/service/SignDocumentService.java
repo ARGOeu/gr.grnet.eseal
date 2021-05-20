@@ -11,6 +11,7 @@ import eu.europa.esig.dss.utils.Utils;
 import gr.grnet.eseal.config.VisibleSignatureProperties;
 import gr.grnet.eseal.dto.SignDocumentDto;
 import gr.grnet.eseal.enums.Path;
+import gr.grnet.eseal.enums.VisibleSignatureText;
 import gr.grnet.eseal.exception.InternalServerErrorException;
 import gr.grnet.eseal.exception.InvalidTOTPException;
 import gr.grnet.eseal.exception.UnprocessableEntityException;
@@ -133,17 +134,40 @@ public interface SignDocumentService {
         errorResponseFunction());
   }
 
-  static String getSignerInfo(RemoteProviderCertificatesResponse certificates) {
+  static String getSignerInfo(
+      RemoteProviderCertificatesResponse certificates, VisibleSignatureText visibleSignatureText) {
 
-    return Try.of(
-            () ->
-                gr.grnet.eseal.utils.Utils.extractCNFromSubject(certificates.getSubject())
-                    + "/"
-                    + gr.grnet.eseal.utils.Utils.extractOUFromSubject(certificates.getSubject()))
-        .getOrElseThrow(
-            (e) -> {
-              throw new InternalServerErrorException("Error with Signer's Certificate Subject");
-            });
+    switch (visibleSignatureText) {
+      case CN_OU:
+        return Try.of(
+                () ->
+                    gr.grnet.eseal.utils.Utils.extractCNFromSubject(certificates.getSubject())
+                        + "/"
+                        + gr.grnet.eseal.utils.Utils.extractOUFromSubject(
+                            certificates.getSubject()))
+            .getOrElseThrow(
+                (e) -> {
+                  throw new InternalServerErrorException("Error with Signer's Certificate Subject");
+                });
+      case CN:
+        return Try.of(
+                () -> gr.grnet.eseal.utils.Utils.extractCNFromSubject(certificates.getSubject()))
+            .getOrElseThrow(
+                (e) -> {
+                  throw new InternalServerErrorException("Error with Signer's Certificate Subject");
+                });
+      case TEXT:
+        throw new InternalServerErrorException(
+            "Using plain text on visible signature currently is not supported");
+
+      default:
+        return Try.of(
+                () -> gr.grnet.eseal.utils.Utils.extractOUFromSubject(certificates.getSubject()))
+            .getOrElseThrow(
+                (e) -> {
+                  throw new InternalServerErrorException("Error with Signer's Certificate Subject");
+                });
+    }
   }
 
   static List<CertificateToken> getCertificatesToken(
