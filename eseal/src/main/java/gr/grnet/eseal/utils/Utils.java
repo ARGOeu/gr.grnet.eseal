@@ -87,10 +87,9 @@ public final class Utils {
    */
   public static String formatVisibleSignatureText(String signerInfo, String date) {
 
-    String signerInfoFormatted =
-        String.format("%1$-100s", "Ψηφιακά υπογεγραμμένο από " + signerInfo);
+    String signerInfoFormatted = String.format("%1$-100s", "Digitally signed by " + signerInfo);
 
-    String dateFormatted = String.format("%1$-100s", "Ημερομηνία: " + date);
+    String dateFormatted = String.format("%1$-100s", "Date: " + date);
 
     return signerInfoFormatted + "\n" + dateFormatted;
   }

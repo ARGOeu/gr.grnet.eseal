@@ -6,12 +6,14 @@ import gr.grnet.eseal.dto.SignDocumentDto;
 import gr.grnet.eseal.dto.SignDocumentRequestDto;
 import gr.grnet.eseal.dto.SignDocumentResponseDto;
 import gr.grnet.eseal.enums.Sign;
+import gr.grnet.eseal.enums.VisibleSignatureText;
 import gr.grnet.eseal.service.SignDocumentService;
 import gr.grnet.eseal.service.SignDocumentServiceFactory;
 import gr.grnet.eseal.sign.RemoteProviderCertificates;
 import gr.grnet.eseal.sign.response.RemoteProviderCertificatesResponse;
 import gr.grnet.eseal.utils.validation.Base64RequestFieldCheckGroup;
 import gr.grnet.eseal.utils.validation.NotEmptySignDocumentRequestFieldsCheckGroup;
+import gr.grnet.eseal.utils.validation.ValueOfEnumRequestFieldCheckGroup;
 import java.util.Date;
 import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +71,8 @@ public class DocumentSignController {
       @Validated(
               value = {
                 NotEmptySignDocumentRequestFieldsCheckGroup.class,
-                Base64RequestFieldCheckGroup.class
+                Base64RequestFieldCheckGroup.class,
+                ValueOfEnumRequestFieldCheckGroup.class
               })
           @RequestBody
           SignDocumentDetachedRequestDto signDocumentDetachedRequestDto,
@@ -96,7 +99,11 @@ public class DocumentSignController {
                     .bytes(signDocumentDetachedRequestDto.getToSignDocument().getBytes())
                     .imageBytes(signDocumentDetachedRequestDto.getImageBytes())
                     .signingDate(new Date())
-                    .signerInfo(SignDocumentService.getSignerInfo(userCertificates))
+                    .signerInfo(
+                        SignDocumentService.getSignerInfo(
+                            userCertificates,
+                            VisibleSignatureText.valueOf(
+                                signDocumentDetachedRequestDto.getVisibleSignatureText())))
                     .certificateList(SignDocumentService.getCertificatesToken(userCertificates))
                     .build()));
   }

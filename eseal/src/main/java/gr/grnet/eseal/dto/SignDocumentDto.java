@@ -1,6 +1,7 @@
 package gr.grnet.eseal.dto;
 
 import eu.europa.esig.dss.model.x509.CertificateToken;
+import gr.grnet.eseal.enums.VisibleSignatureText;
 import java.util.Date;
 import java.util.List;
 import lombok.Builder;
@@ -21,4 +22,5 @@ public class SignDocumentDto {
   private Date signingDate;
   private String signerInfo;
   List<CertificateToken> certificateList;
+  private VisibleSignatureText visibleSignatureText;
 }
