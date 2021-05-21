@@ -1,0 +1,193 @@
+{
+	"info": {
+		"_postman_id": "3a80f05d-5942-43d8-bf3a-068b8d36297f",
+		"name": "E-signature Rest API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "PDF Validation",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"signedDocument\": {\n\t\t\"name\": \"{{pdf_name_to_validate}}\",\n\t\t\"bytes\": \"{{pdf_base64_to_validate}}\"\n\t\t\n\t}\n}"
+				},
+				"url": {
+					"raw": "{{protocol}}://{{base_url}}:{{port}}/{{validation_path}}/{{validation_endpoint}}",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"{{validation_path}}",
+						"{{validation_endpoint}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PDF Timestamp",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"toTimestampDocument\": {\n\t\t\"name\": \"{{pdf_name_to_timestamp}}\",\n\t\t\"bytes\": \"{{pdf_base64_to_timestamp}}\"\n\t}\n}"
+				},
+				"url": {
+					"raw": "{{protocol}}://{{base_url}}:{{port}}/{{timestamp_path}}/{{timestamp_endpoint}}",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"{{timestamp_path}}",
+						"{{timestamp_endpoint}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PDF Signing",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"username\": \"{{username}}\",\n\t\"password\": \"{{password}}\",\n\t\"key\": \"{{key}}\",\n\t\"toSignDocument\": {\n\t\t\"name\": \"{{pdf_name_to_sign}}\",\n        \"bytes\": \"{{pdf_base64_to_sign}}\"\n\t}\n}"
+				},
+				"url": {
+					"raw": "{{protocol}}://{{base_url}}:{{port}}/{{signing_path}}/{{signing_endpoint}}",
+					"protocol": "{{protocol}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"port": "{{port}}",
+					"path": [
+						"{{signing_path}}",
+						"{{signing_endpoint}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "protocol",
+			"value": "https"
+		},
+		{
+			"key": "base_url",
+			"value": "eseal.devel.einfra.grnet.gr"
+		},
+		{
+			"key": "port",
+			"value": "443"
+		},
+		{
+			"key": "username",
+			"value": ""
+		},
+		{
+			"key": "password",
+			"value": ""
+		},
+		{
+			"key": "key",
+			"value": ""
+		},
+		{
+			"key": "signing_path",
+			"value": "api/v1/signing"
+		},
+		{
+			"key": "signing_endpoint",
+			"value": "remoteSignDocumentDetached"
+		},
+		{
+			"key": "pdf_name_to_sign",
+			"value": "to_sign.pdf"
+		},
+		{
+			"key": "pdf_base64_to_sign",
+			"value": ""
+		},
+		{
+			"key": "validation_path",
+			"value": "api/v1/validation"
+		},
+		{
+			"key": "validation_endpoint",
+			"value": "validateDocument"
+		},
+		{
+			"key": "pdf_name_to_validate",
+			"value": "to_validate.pdf"
+		},
+		{
+			"key": "pdf_base64_to_validate",
+			"value": ""
+		},
+		{
+			"key": "timestamp_path",
+			"value": "api/v1/timestamping"
+		},
+		{
+			"key": "timestamp_endpoint",
+			"value": "remoteTimestampDocument"
+		},
+		{
+			"key": "pdf_name_to_timestamp",
+			"value": "to_timestamp.pdf"
+		},
+		{
+			"key": "pdf_base64_to_timestamp",
+			"value": ""
+		}			
+	]
+}
