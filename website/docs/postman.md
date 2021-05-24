@@ -1,12 +1,33 @@
+---
+id: postman
+title: Communicate with E-Signature API
+sidebar_label: Communicate with E-Signature API
+keywords:
+  - eseal
+  - e-seal
+  - validation
+  - api
+  - doc
+  - docs
+  - documentation
+  - documents
+  - pdf
+  - grnet
+  - postman
+  - json
+---
+
+
 ### Prerequisites
 
 - Postman
 
 ### Instructions
 
-in order to communicate with E-Signature Rest API the following provided collection should be imported on Postman platform.
+In order to communicate with E-Signature Rest API the following provided collection should be imported on Postman platform.
 
-[Postman Collection](../../e_signature_rest_api.postman_collection.json)
+<a target="_blank" href="/assets/e_signature_rest_api.postman_collection.json">Postman Collection</a>
+
 
 Into collection, you can find the environment variables which are important in order to execute requests on API.
 
