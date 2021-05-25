@@ -26,12 +26,54 @@ keywords:
 
 In order to communicate with E-Signature Rest API the following postman components should both be imported on Postman platform.
 
-
-- <a target="_blank" href="/assets/e_signature_rest_api.postman_collection.json">Postman Collection</a>
 - <a target="_blank" href="/assets/eseal_environment.postman_environment.json">Postman Environment</a>
+- <a target="_blank" href="/assets/e_signature_rest_api.postman_collection.json">Postman Collection</a>
 
 
-Into Postman Collection, you can find the  variables which are important in order to execute requests on API.
+#### Postman Environment
+
+Into Postman Environment, you can find the variables which are important in order to communicate with the API of GRNET.
+
+The following variables are predefined and should not be changed.
+
+		{
+			"key": "base_url",
+			"value": "eseal.devel.einfra.grnet.gr",
+			"enabled": true
+		},
+		{
+			"key": "port",
+			"value": "443",
+			"enabled": true
+		},
+		{
+			"key": "protocol",
+			"value": "https",
+			"enabled": true
+		}
+
+
+The `username`, `password` and `key` will be provided by GRNET.
+
+		{
+			"key": "username",
+			"value": "",
+			"enabled": true
+		},
+		{
+			"key": "password",
+			"value": "",
+			"enabled": true
+		},
+		{
+			"key": "key",
+			"value": "",
+			"enabled": true
+		}
+
+#### Postman Collection
+
+Into Postman Collection, you can find the variables which are important in order to execute requests on API.
 
 The following variables are predefined and should not be changed.
 
@@ -60,20 +102,8 @@ The following variables are predefined and should not be changed.
 			"value": "remoteTimestampDocument"
 		}
 
-The following variables are empty and should be filled in approprielly. The `username`, `password` and `key` will be provided by GRNET and the rest variables should be filled in by user.
+The following variables are empty and should be filled in appropriately.
 
-		{
-			"key": "username",
-			"value": ""
-		},
-		{
-			"key": "password",
-			"value": ""
-		},
-		{
-			"key": "key",
-			"value": ""
-		},
 		{
 			"key": "pdf_base64_to_sign",
 			"value": ""
@@ -87,24 +117,19 @@ The following variables are empty and should be filled in approprielly. The `use
 			"value": ""
 		}
 
-Into Postman Environment, you can find the variables which are important in order to communicate with the API of GRNET. 
+The following variables are optional and has already been predefined. These variables can be changed freely.
 
-The following variables are predefined and should not be changed.
-
-	    {
-			"key": "base_url",
-			"value": "eseal.devel.einfra.grnet.gr",
-			"enabled": true
+		{
+			"key": "pdf_name_to_sign",
+			"value": "to_sign.pdf"
 		},
 		{
-			"key": "port",
-			"value": "443",
-			"enabled": true
+			"key": "pdf_name_to_validate",
+			"value": "to_validate.pdf"
 		},
 		{
-			"key": "protocol",
-			"value": "https",
-			"enabled": true
+			"key": "pdf_name_to_timestamp",
+			"value": "to_timestamp.pdf"
 		}
 
 Finally , you can find the following 3 POST requests : 
