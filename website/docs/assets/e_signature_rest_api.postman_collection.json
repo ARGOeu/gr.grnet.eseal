@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "31dc0976-f11d-4aa7-84d9-b5aee22eb353",
+		"_postman_id": "35d3fced-96c9-407e-8ff5-729df057553e",
 		"name": "E-signature Rest API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -117,18 +117,6 @@
 		}
 	],
 	"variable": [
-		{
-			"key": "username",
-			"value": ""
-		},
-		{
-			"key": "password",
-			"value": ""
-		},
-		{
-			"key": "key",
-			"value": ""
-		},
 		{
 			"key": "signing_path",
 			"value": "api/v1/signing"
