@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "3a80f05d-5942-43d8-bf3a-068b8d36297f",
+		"_postman_id": "31dc0976-f11d-4aa7-84d9-b5aee22eb353",
 		"name": "E-signature Rest API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -117,18 +117,6 @@
 		}
 	],
 	"variable": [
-		{
-			"key": "protocol",
-			"value": "https"
-		},
-		{
-			"key": "base_url",
-			"value": "eseal.devel.einfra.grnet.gr"
-		},
-		{
-			"key": "port",
-			"value": "443"
-		},
 		{
 			"key": "username",
 			"value": ""

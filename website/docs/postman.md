@@ -24,27 +24,18 @@ keywords:
 
 ### Instructions
 
-In order to communicate with E-Signature Rest API the following provided collection should be imported on Postman platform.
+In order to communicate with E-Signature Rest API the following postman components should both be imported on Postman platform.
+
 
 <a target="_blank" href="/assets/e_signature_rest_api.postman_collection.json">Postman Collection</a>
 
+<a target="_blank" href="/assets/eseal_environment.postman_environment.json">Postman Environment</a>
 
-Into collection, you can find the environment variables which are important in order to execute requests on API.
+
+Into Postman Collection, you can find the  variables which are important in order to execute requests on API.
 
 The following variables are predefined and should not be changed.
 
-		{
-			"key": "protocol",
-			"value": "https"
-		},
-		{
-			"key": "base_url",
-			"value": "eseal.devel.einfra.grnet.gr"
-		},
-		{
-			"key": "port",
-			"value": "443"
-		},
 		{
 			"key": "signing_path",
 			"value": "api/v1/signing"
@@ -95,6 +86,26 @@ The following variables are empty and should be filled in approprielly. The `use
 		{
 			"key": "pdf_base64_to_timestamp",
 			"value": ""
+		}
+
+Into Postman Environment, you can find the variables which are important in order to communicate with the API of GRNET. 
+
+The following variables are predefined and should not be changed.
+
+	    {
+			"key": "base_url",
+			"value": "eseal.devel.einfra.grnet.gr",
+			"enabled": true
+		},
+		{
+			"key": "port",
+			"value": "443",
+			"enabled": true
+		},
+		{
+			"key": "protocol",
+			"value": "https",
+			"enabled": true
 		}
 
 Finally , you can find the following 3 POST requests : 
