@@ -27,9 +27,8 @@ keywords:
 In order to communicate with E-Signature Rest API the following postman components should both be imported on Postman platform.
 
 
-<a target="_blank" href="/assets/e_signature_rest_api.postman_collection.json">Postman Collection</a>
-
-<a target="_blank" href="/assets/eseal_environment.postman_environment.json">Postman Environment</a>
+- <a target="_blank" href="/assets/e_signature_rest_api.postman_collection.json">Postman Collection</a>
+- <a target="_blank" href="/assets/eseal_environment.postman_environment.json">Postman Environment</a>
 
 
 Into Postman Collection, you can find the  variables which are important in order to execute requests on API.
