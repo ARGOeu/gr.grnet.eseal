@@ -3,10 +3,10 @@ Description=E-seal API for signing,validating and timestamping documents.
 Documentation=https://argoeu.github.io/gr.grnet.eseal/
 
 [Service]
-User=eseal
-Group=eseal
-WorkingDirectory=/var/www/eseal
-ExecStart=/var/www/eseal/eseal.jar
+User=unisys
+Group=unisys
+WorkingDirectory=/opt/eseal
+ExecStart=/opt/eseal/eseal-0.0.1-SNAPSHOT.jar
 SyslogIdentifier=eseal
 Restart=on-failure
 RestartSec=5s
