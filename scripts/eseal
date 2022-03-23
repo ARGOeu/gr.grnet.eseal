@@ -9,7 +9,7 @@
 # Description:       E-Seal service for use with e-ThemisID and OSDDYDD signatures
 ### END INIT INFO
 
-SCRIPT=/opt/eseal/eseal-0.0.1-SNAPSHOT.jar
+SCRIPT=/opt/eseal/eseal.jar
 RUNAS=unisys
 
 PIDFILE=/opt/eseal/eseal.pid
@@ -34,7 +34,7 @@ stop() {
     return 1
   fi
   echo 'Stopping service…' >&2
-  kill -15 $(cat "$PIDFILE") && rm -f "$PIDFILE"
+  pkill -P $(cat "$PIDFILE") && rm -f "$PIDFILE"
   echo 'Service stopped' >&2
 }
 

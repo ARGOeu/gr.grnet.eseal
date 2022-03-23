@@ -1,10 +1,10 @@
 # login as unisys
 mkdir /opt/eseal
 mkdir /opt/eseal/log
-cp eseal-0.0.1-SNAPSHOT.jar /opt/eseal
-cp eseal-0.0.1-SNAPSHOT.conf /opt/eseal
+cp eseal.jar /opt/eseal
+cp eseal.conf /opt/eseal
 cp eseal.service /opt/eseal
-chmod +x eseal-0.0.1-SNAPSHOT.jar
+chmod +x eseal.jar
 
 # to override default logging - there is already logback.xml and logback jars inside the executable JAR
 # https://docs.spring.io/spring-boot/docs/2.1.8.RELEASE/reference/html/howto-logging.html
