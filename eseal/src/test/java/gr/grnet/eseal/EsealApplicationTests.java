@@ -93,7 +93,7 @@ class EsealApplicationTests {
     assertThat("JKS").isEqualTo(this.haricaTSPSourceProperties.getTruststore().getType());
     assertThat("qts.harica.gr").isEqualTo(this.haricaTSPSourceProperties.getHost());
     assertThat(443).isEqualTo(this.haricaTSPSourceProperties.getPort());
-    assertThat("https").isEqualTo(this.haricaTSPSourceProperties.getScheme());
+    assertThat("Basic").isEqualTo(this.haricaTSPSourceProperties.getScheme());
     assertThat("test-user").isEqualTo(this.haricaTSPSourceProperties.getUsername());
     assertThat("test-pass").isEqualTo(this.haricaTSPSourceProperties.getPassword());
   }
