@@ -19,6 +19,7 @@ public class SignDocumentDto {
   private String bytes;
   private String name;
   private String imageBytes = "";
+  private Boolean imageVisibility;
   private Date signingDate;
   private String signerInfo;
   List<CertificateToken> certificateList;
