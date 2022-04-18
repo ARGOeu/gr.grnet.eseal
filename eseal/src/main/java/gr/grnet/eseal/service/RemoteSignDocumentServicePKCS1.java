@@ -72,13 +72,6 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
   public String signDocument(SignDocumentDto signDocumentDto) {
     try {
 
-      SignatureImageParameters signatureImageParameters =
-          getSignatureImageParameters(
-              signDocumentDto.getSigningDate(),
-              visibleSignatureProperties,
-              signDocumentDto.getSignerInfo(),
-              signDocumentDto.getImageBytes());
-
       PAdESSignatureParameters padesSignatureParameters = new PAdESSignatureParameters();
       padesSignatureParameters.setSignatureLevel(SignatureLevel.PAdES_BASELINE_LTA);
       padesSignatureParameters.setDigestAlgorithm(DigestAlgorithm.SHA256);
@@ -86,9 +79,17 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
       BLevelParameters blevelParameters = new BLevelParameters();
       blevelParameters.setSigningDate(signDocumentDto.getSigningDate());
       padesSignatureParameters.setBLevelParams(blevelParameters);
-      padesSignatureParameters.setImageParameters(signatureImageParameters);
       padesSignatureParameters.setSigningCertificate(signDocumentDto.getCertificateList().get(0));
       padesSignatureParameters.setCertificateChain(signDocumentDto.getCertificateList());
+      if (signDocumentDto.getImageVisibility()) {
+        SignatureImageParameters signatureImageParameters =
+            getSignatureImageParameters(
+                signDocumentDto.getSigningDate(),
+                visibleSignatureProperties,
+                signDocumentDto.getSignerInfo(),
+                signDocumentDto.getImageBytes());
+        padesSignatureParameters.setImageParameters(signatureImageParameters);
+      }
 
       CommonCertificateVerifier commonCertificateVerifier = new CommonCertificateVerifier();
       commonCertificateVerifier.setCheckRevocationForUntrustedChains(true);
@@ -151,7 +152,7 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
       LOGGER.error(
           "Could not produce signed document",
           f(ServiceLogField.builder().details(e.getMessage()).build()));
-      throw new InternalServerErrorException("Could not produce signed document");
+      throw new InternalServerErrorException("Could not produce signed document." + e.getMessage());
     }
   }
 }

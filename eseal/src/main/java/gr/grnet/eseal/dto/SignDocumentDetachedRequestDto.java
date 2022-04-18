@@ -13,6 +13,8 @@ import lombok.Setter;
 public class SignDocumentDetachedRequestDto extends SignDocumentRequestDto {
   private String imageBytes = "";
 
+  private Boolean imageVisibility = true;
+
   @ValueOfEnum(
       groups = ValueOfEnumRequestFieldCheckGroup.class,
       enumClass = VisibleSignatureText.class,
