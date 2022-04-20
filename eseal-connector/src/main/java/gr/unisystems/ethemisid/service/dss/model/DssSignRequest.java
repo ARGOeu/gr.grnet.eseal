@@ -10,8 +10,17 @@ public class DssSignRequest {
     private String key;
     private byte[] imageBytes;
     private ToSignDocument toSignDocument;
+    private boolean imageVisibility = false;
 
-   public ToSignDocument getToSignDocument() {
+    public void setImageVisibility(boolean imageVisibility) {
+        this.imageVisibility = imageVisibility;
+    }
+
+    public boolean isImageVisibility() {
+        return imageVisibility;
+    }
+
+    public ToSignDocument getToSignDocument() {
       return toSignDocument;
    }
 

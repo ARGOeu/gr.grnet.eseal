@@ -4,20 +4,19 @@
  */
 package gr.unisystems.ethemisid.service.dss;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
 import gr.unisystems.ethemisid.service.dss.exception.DssException;
 import gr.unisystems.ethemisid.service.dss.model.DssSignRequest;
 import gr.unisystems.ethemisid.service.dss.model.DssSignResponse;
 import gr.unisystems.ethemisid.service.dss.model.ToSignDocument;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
+
+import java.io.IOException;
+
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Named
-@ApplicationScoped
 public class SigningServiceImpl extends RestClient implements SigningService {
 
    Logger log = LoggerFactory.getLogger(SigningServiceImpl.class);
@@ -28,7 +27,7 @@ public class SigningServiceImpl extends RestClient implements SigningService {
    }
 
    @Override
-   public byte[] sign(byte[] bytes, byte[] imageBytes, String filename, String username, String password, String key) throws DssException {
+   public byte[] sign(byte[] bytes, byte[] imageBytes, String filename, String username, String password, String key, boolean imageVisibility) throws DssException, IOException {
       if (bytes == null) {
          throw new IllegalArgumentException("fileBytes has to be supplied");
       }
@@ -38,10 +37,20 @@ public class SigningServiceImpl extends RestClient implements SigningService {
       }      
 
       byte[] ret = null;
-      DssSignRequest req = prepareInput(bytes, imageBytes, filename, username, password, key);
+      DssSignRequest req = prepareInput(bytes, imageBytes, filename, username, password, key, imageVisibility);
       debugLogRequest(req);
 
-      DssSignResponse result = getClient().target(getUrl()).request(MediaType.APPLICATION_JSON).post(Entity.json(req), DssSignResponse.class);
+      // Jersey 2.x
+      //DssSignResponse result = getClient().target(getUrl()).request(MediaType.APPLICATION_JSON).post(Entity.json(req), DssSignResponse.class);
+      
+      WebResource webResource = getClient().resource(getUrl());
+      ObjectMapper mapper = ObjectMapperContextResolver.createMapper();
+      String strReq = mapper.writeValueAsString(req);
+      ClientResponse response = webResource.type("application/json").post(ClientResponse.class, strReq);
+      //DssSignResponse result = response.getEntity(DssSignResponse.class);
+      String strRet = response.getEntity(String.class);
+      DssSignResponse result = mapper.readValue(strRet, DssSignResponse.class);
+      
       if (result == null) {
          throw new DssException("Call to sign returned null");
       } else if (result.getError() != null) {
@@ -64,12 +73,13 @@ public class SigningServiceImpl extends RestClient implements SigningService {
       }
    }
 
-   private DssSignRequest prepareInput(byte[] bytes, byte[] imageBytes, String fileName, String username, String password, String key) {
+   private DssSignRequest prepareInput(byte[] bytes, byte[] imageBytes, String fileName, String username, String password, String key, boolean imageVisibility) {
       DssSignRequest ret = new DssSignRequest();
       ret.setUsername(username);
       ret.setPassword(password);
       ret.setKey(key);
       ret.setImageBytes(imageBytes);
+      ret.setImageVisibility(imageVisibility);
 
       ToSignDocument doc = new ToSignDocument();
       doc.setName(fileName);

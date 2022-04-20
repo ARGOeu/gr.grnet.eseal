@@ -4,6 +4,9 @@
  */
 package gr.unisystems.ethemisid.service.dss;
 
+import com.sun.jersey.api.client.ClientRequest.Builder;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
 import gr.unisystems.ethemisid.service.dss.exception.AttachmentValidationException;
 import gr.unisystems.ethemisid.service.dss.exception.AttachmentValidationFoundException;
 import gr.unisystems.ethemisid.service.dss.exception.AttachmentValidationResult;
@@ -11,9 +14,6 @@ import gr.unisystems.ethemisid.service.dss.mapper.DssValidationMapper;
 import gr.unisystems.ethemisid.service.dss.model.DssValidationMappedResult;
 import gr.unisystems.ethemisid.service.dss.model.DssValidationSignatureRequest;
 import gr.unisystems.ethemisid.service.dss.model.SignedDocument;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,8 +38,11 @@ public class AttachmentValidationServiceImpl extends RestClient implements Attac
       
       try {
          DssValidationSignatureRequest req = prepareValidationInput(file, filename);
-         Response response = getClient().target(getUrl()).request(MediaType.APPLICATION_JSON).post(Entity.json(req));
-         String body = response.readEntity(String.class);
+         
+         WebResource webResource = getClient().resource(getUrl());
+         ClientResponse response = webResource.type("application/json").post(ClientResponse.class, req);
+         // Response response = getClient().target(getUrl()).request(MediaType.APPLICATION_JSON).post(Entity.entity(req, MediaType.APPLICATION_JSON), DssValidationSignatureRequest.class);
+         String body = response.getEntity(String.class);
          log.debug("Validation call returned with response of length = " + (body != null ? body.length() : "null"));
          validationResult = DssValidationMapper.map(body);
       } catch (Exception ex) {

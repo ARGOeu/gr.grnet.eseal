@@ -12,6 +12,6 @@ import gr.unisystems.ethemisid.service.dss.model.DssValidationMappedResult;
  * @author ZhukovA
  */
 public interface AttachmentValidationService {
-   public void config(String url);
+    public void config(String url, int connectionTimeout, int socketTimeout);
    public DssValidationMappedResult validate(byte[] file, String filename) throws AttachmentValidationException;
 }

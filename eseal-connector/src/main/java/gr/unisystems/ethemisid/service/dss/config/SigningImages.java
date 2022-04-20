@@ -7,6 +7,9 @@ package gr.unisystems.ethemisid.service.dss.config;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import java.net.URL;
+
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.io.IOUtils;
@@ -30,22 +33,28 @@ public class SigningImages {
       return _instance;
    }
    
+   private byte[] loadImage(String path) {
+       byte[] bytes;
+       URL url = this.getClass().getClassLoader().getResource(path);
+       if (url == null) {
+          throw new IllegalStateException("resource " + path + " not found");
+       }
+       
+       try {
+           try (InputStream is = url.openStream()) {
+              bytes = IOUtils.toByteArray(is);
+           }    
+       }
+       catch (IOException ex) {
+           throw new RuntimeException(ex);
+       }
+       return bytes;
+   }
+   
    private void loadImages() {
-      byte[] bytes;
-      
-      try (final InputStream inputStream = this.getClass().getResourceAsStream("/sign_logo_GEETDD.png")) {
-         bytes = IOUtils.toByteArray(inputStream);
-      } catch (IOException e) {
-         throw new RuntimeException(e);
-      }
-      images.add(bytes);
-
-      try (final InputStream inputStream = this.getClass().getResourceAsStream("/sign_logo_ste_2008_lite.jpg")) {
-         bytes = IOUtils.toByteArray(inputStream);
-      } catch (IOException e) {
-         throw new RuntimeException(e);
-      }
-      images.add(bytes);
+       
+      images.add(loadImage("sign_logo_GEETDD.png"));
+      images.add(loadImage("sign_logo_ste_2008_lite.jpg"));
    }
    
    public List<byte[]> getImages() {

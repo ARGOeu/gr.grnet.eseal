@@ -4,14 +4,13 @@
  */
 package gr.unisystems.ethemisid.service.dss.mapper;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gr.unisystems.ethemisid.service.dss.exception.DssException;
 import gr.unisystems.ethemisid.service.dss.model.DssValidationMappedResult;
 import gr.unisystems.ethemisid.service.dss.model.DssValidationPerSignature;
 import java.util.Iterator;
 import java.util.List;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  *
@@ -55,7 +54,7 @@ public class DssValidationMapper {
                   
                   DssValidationPerSignature sig = null;   
                   if (sigNode.isArray()) {
-                     Iterator<JsonNode> it = sigNode.elements();
+                     Iterator<JsonNode> it = sigNode.getElements();
                      while (it.hasNext()) {
                         JsonNode elem = it.next();
                         sig = mapSingleSignature(elem);
