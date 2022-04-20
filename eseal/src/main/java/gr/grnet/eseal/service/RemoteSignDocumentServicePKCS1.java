@@ -32,6 +32,7 @@ import gr.grnet.eseal.sign.RemoteProviderSignBuffer;
 import gr.grnet.eseal.sign.request.RemoteProviderSignBufferPKCS1Request;
 import gr.grnet.eseal.sign.response.RemoteProviderSignBufferResponse;
 import gr.grnet.eseal.timestamp.TSASourceRegistry;
+import gr.grnet.eseal.validation.DocumentValidatorLOTL;
 import java.security.MessageDigest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +50,7 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
   private final RemoteProviderProperties remoteProviderProperties;
   private final RemoteProviderCertificates remoteProviderCertificates;
   private final RemoteProviderSignBuffer remoteProviderSignBuffer;
+  private final DocumentValidatorLOTL documentValidatorLOTL;
 
   @Autowired
   public RemoteSignDocumentServicePKCS1(
@@ -56,24 +58,19 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
       TSASourceRegistry tsaSourceRegistry,
       RemoteProviderProperties remoteProviderProperties,
       RemoteProviderCertificates remoteProviderCertificates,
-      RemoteProviderSignBuffer remoteProviderSignBuffer) {
+      RemoteProviderSignBuffer remoteProviderSignBuffer,
+      DocumentValidatorLOTL documentValidatorLOTL) {
     this.visibleSignatureProperties = visibleSignatureProperties;
     this.tsaSourceRegistry = tsaSourceRegistry;
     this.remoteProviderProperties = remoteProviderProperties;
     this.remoteProviderCertificates = remoteProviderCertificates;
     this.remoteProviderSignBuffer = remoteProviderSignBuffer;
+    this.documentValidatorLOTL = documentValidatorLOTL;
   }
 
   @Override
   public String signDocument(SignDocumentDto signDocumentDto) {
     try {
-
-      SignatureImageParameters signatureImageParameters =
-          getSignatureImageParameters(
-              signDocumentDto.getSigningDate(),
-              visibleSignatureProperties,
-              signDocumentDto.getSignerInfo(),
-              signDocumentDto.getImageBytes());
 
       PAdESSignatureParameters padesSignatureParameters = new PAdESSignatureParameters();
       padesSignatureParameters.setSignatureLevel(SignatureLevel.PAdES_BASELINE_LTA);
@@ -82,9 +79,17 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
       BLevelParameters blevelParameters = new BLevelParameters();
       blevelParameters.setSigningDate(signDocumentDto.getSigningDate());
       padesSignatureParameters.setBLevelParams(blevelParameters);
-      padesSignatureParameters.setImageParameters(signatureImageParameters);
       padesSignatureParameters.setSigningCertificate(signDocumentDto.getCertificateList().get(0));
       padesSignatureParameters.setCertificateChain(signDocumentDto.getCertificateList());
+      if (signDocumentDto.getImageVisibility()) {
+        SignatureImageParameters signatureImageParameters =
+            getSignatureImageParameters(
+                signDocumentDto.getSigningDate(),
+                visibleSignatureProperties,
+                signDocumentDto.getSignerInfo(),
+                signDocumentDto.getImageBytes());
+        padesSignatureParameters.setImageParameters(signatureImageParameters);
+      }
 
       CommonCertificateVerifier commonCertificateVerifier = new CommonCertificateVerifier();
       commonCertificateVerifier.setCheckRevocationForUntrustedChains(true);
@@ -102,7 +107,8 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
       onlineOCSPSource.setDataLoader(ocspDataLoader);
       commonCertificateVerifier.setOcspSource(onlineOCSPSource);
 
-      PAdESService padesService = new PAdESService(commonCertificateVerifier);
+      PAdESService padesService =
+          new PAdESService(this.documentValidatorLOTL.getCertificateVerifier());
       padesService.setTspSource(tsaSourceRegistry.getTSASource(TSASourceEnum.HARICA));
 
       DSSDocument toBeSignedDocument =
@@ -146,7 +152,7 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
       LOGGER.error(
           "Could not produce signed document",
           f(ServiceLogField.builder().details(e.getMessage()).build()));
-      throw new InternalServerErrorException("Could not produce signed document");
+      throw new InternalServerErrorException("Could not produce signed document." + e.getMessage());
     }
   }
 }

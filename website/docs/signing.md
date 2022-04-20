@@ -80,6 +80,9 @@ The username/password pair maps to a specific eseal.
 - `key` :  Key that will be used with the TOTP generation.
 Each username/password pair corresponds to a specific key.
 
+- `imageVisibility(optional, default=true)` : true or false, about the signature containing
+a visual representation as well.
+
 - `imageBytes(optional)` :  Custom image to be included into the visible signature and
 override the default, in base64 encoded format.
 
@@ -90,14 +93,15 @@ override the default, in base64 encoded format.
 
 ```json
 {
-	"username": "example-user",
-	"password": "example-password",
-	"key": "example-key",
-	"imageBytes": "MJIDdijo...",
-	"toSignDocument": {
-		"name": "document.pdf",
-		"bytes": "JVBERi0xLjM..."
-		}
+  "username": "example-user",	  
+  "password": "example-password",	  
+  "key": "example-key",	  
+  "imageVisibility": true,	  
+  "imageBytes": "MJIDdijo...", 
+  "toSignDocument": {	    
+    "name": "document.pdf",
+    "bytes": "JVBERi0xLjM..."
+  }
 }
 ```
 

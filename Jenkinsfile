@@ -51,7 +51,7 @@ pipeline {
                     cd $WORKSPACE/$PROJECT_DIR
                     cd website
                     npm install
-                    npm audit fix
+                   #npm audit fix
                 '''
                 sshagent (credentials: ['jenkins-master']) {
                     sh '''
