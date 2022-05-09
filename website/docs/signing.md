@@ -61,9 +61,11 @@ Each username/password pair corresponds to a specific key.
 ## POST - Sign a PDF document detached
 
 This API call does not send the entire PDF to the remote eseal provider for signing
-but rather only the digest(hash) of the provided document and finally it combines
+but rather only the digest(hash) of the provided document, and finally it combines
 the returned signature with the original pdf document.The signature will also be visible
-containing an image and the CN/OU from the signing certificate.
+containing an image and the CN/OU from the signing certificate.In case of an already existing signature
+in the document, the API will try the following positions in order before disabling
+the visibility: TOP_LEFT -> BOTTOM_LEFT -> TOP_RIGHT -> BOTTOM_RIGHT -> INVISIBLE.
 
 ### Request
 
