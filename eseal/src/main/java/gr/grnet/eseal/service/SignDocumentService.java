@@ -11,6 +11,7 @@ import eu.europa.esig.dss.utils.Utils;
 import gr.grnet.eseal.config.VisibleSignatureProperties;
 import gr.grnet.eseal.dto.SignDocumentDto;
 import gr.grnet.eseal.enums.Path;
+import gr.grnet.eseal.enums.VisibleSignaturePosition;
 import gr.grnet.eseal.enums.VisibleSignatureText;
 import gr.grnet.eseal.exception.InternalServerErrorException;
 import gr.grnet.eseal.exception.InvalidTOTPException;
@@ -196,7 +197,8 @@ public interface SignDocumentService {
       Date signingDate,
       VisibleSignatureProperties visibleSignatureProperties,
       String signerInfo,
-      String imageBytes) {
+      String imageBytes,
+      VisibleSignaturePosition position) {
 
     // visible signature text
     ZonedDateTime z =
@@ -221,8 +223,27 @@ public interface SignDocumentService {
     } else {
       signatureImageParameters.setImage(visibleSignatureProperties.getImageDocument());
     }
-    signatureImageParameters.setAlignmentHorizontal(VisualSignatureAlignmentHorizontal.LEFT);
-    signatureImageParameters.setAlignmentVertical(VisualSignatureAlignmentVertical.TOP);
+
+    switch (position) {
+      case TOP_LEFT:
+        signatureImageParameters.setAlignmentHorizontal(VisualSignatureAlignmentHorizontal.LEFT);
+        signatureImageParameters.setAlignmentVertical(VisualSignatureAlignmentVertical.TOP);
+        break;
+      case TOP_RIGHT:
+        signatureImageParameters.setAlignmentHorizontal(VisualSignatureAlignmentHorizontal.RIGHT);
+        signatureImageParameters.setAlignmentVertical(VisualSignatureAlignmentVertical.TOP);
+        break;
+      case BOTTOM_LEFT:
+        signatureImageParameters.setAlignmentHorizontal(VisualSignatureAlignmentHorizontal.LEFT);
+        signatureImageParameters.setAlignmentVertical(VisualSignatureAlignmentVertical.BOTTOM);
+        break;
+      case BOTTOM_RIGHT:
+        signatureImageParameters.setAlignmentHorizontal(VisualSignatureAlignmentHorizontal.RIGHT);
+        signatureImageParameters.setAlignmentVertical(VisualSignatureAlignmentVertical.BOTTOM);
+        break;
+      default:
+        break;
+    }
 
     return signatureImageParameters;
   }

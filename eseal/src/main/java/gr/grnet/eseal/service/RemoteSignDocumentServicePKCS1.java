@@ -25,6 +25,7 @@ import gr.grnet.eseal.config.VisibleSignatureProperties;
 import gr.grnet.eseal.dto.SignDocumentDto;
 import gr.grnet.eseal.enums.Path;
 import gr.grnet.eseal.enums.TSASourceEnum;
+import gr.grnet.eseal.enums.VisibleSignaturePosition;
 import gr.grnet.eseal.exception.InternalServerErrorException;
 import gr.grnet.eseal.logging.ServiceLogField;
 import gr.grnet.eseal.sign.RemoteProviderCertificates;
@@ -70,89 +71,112 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
 
   @Override
   public String signDocument(SignDocumentDto signDocumentDto) {
-    try {
 
-      PAdESSignatureParameters padesSignatureParameters = new PAdESSignatureParameters();
-      padesSignatureParameters.setSignatureLevel(SignatureLevel.PAdES_BASELINE_LTA);
-      padesSignatureParameters.setDigestAlgorithm(DigestAlgorithm.SHA256);
-      padesSignatureParameters.setContentSize(3 * 9472);
-      BLevelParameters blevelParameters = new BLevelParameters();
-      blevelParameters.setSigningDate(signDocumentDto.getSigningDate());
-      padesSignatureParameters.setBLevelParams(blevelParameters);
-      padesSignatureParameters.setSigningCertificate(signDocumentDto.getCertificateList().get(0));
-      padesSignatureParameters.setCertificateChain(signDocumentDto.getCertificateList());
-      if (signDocumentDto.getImageVisibility()) {
-        SignatureImageParameters signatureImageParameters =
-            getSignatureImageParameters(
-                signDocumentDto.getSigningDate(),
-                visibleSignatureProperties,
-                signDocumentDto.getSignerInfo(),
-                signDocumentDto.getImageBytes());
-        padesSignatureParameters.setImageParameters(signatureImageParameters);
+    boolean retryVisibleSignature = true;
+    int visibleSignaturePosition = 0;
+    String base64SignedDocument = "";
+
+    while (retryVisibleSignature) {
+      try {
+        PAdESSignatureParameters padesSignatureParameters = new PAdESSignatureParameters();
+        padesSignatureParameters.setSignatureLevel(SignatureLevel.PAdES_BASELINE_LTA);
+        padesSignatureParameters.setDigestAlgorithm(DigestAlgorithm.SHA256);
+        padesSignatureParameters.setContentSize(3 * 9472);
+        BLevelParameters blevelParameters = new BLevelParameters();
+        blevelParameters.setSigningDate(signDocumentDto.getSigningDate());
+        padesSignatureParameters.setBLevelParams(blevelParameters);
+        padesSignatureParameters.setSigningCertificate(signDocumentDto.getCertificateList().get(0));
+        padesSignatureParameters.setCertificateChain(signDocumentDto.getCertificateList());
+        if (signDocumentDto.getImageVisibility()) {
+          SignatureImageParameters signatureImageParameters =
+              getSignatureImageParameters(
+                  signDocumentDto.getSigningDate(),
+                  visibleSignatureProperties,
+                  signDocumentDto.getSignerInfo(),
+                  signDocumentDto.getImageBytes(),
+                  VisibleSignaturePosition.getPosition(visibleSignaturePosition));
+          padesSignatureParameters.setImageParameters(signatureImageParameters);
+        }
+
+        CommonCertificateVerifier commonCertificateVerifier = new CommonCertificateVerifier();
+        commonCertificateVerifier.setCheckRevocationForUntrustedChains(true);
+        commonCertificateVerifier.setAlertOnMissingRevocationData(new ExceptionOnStatusAlert());
+
+        // CRLSource
+        OnlineCRLSource onlineCRLSource = new OnlineCRLSource();
+        CommonsDataLoader commonsHttpDataLoader = new CommonsDataLoader();
+        onlineCRLSource.setDataLoader(commonsHttpDataLoader);
+        commonCertificateVerifier.setCrlSource(onlineCRLSource);
+
+        // OCSPSource
+        OnlineOCSPSource onlineOCSPSource = new OnlineOCSPSource();
+        OCSPDataLoader ocspDataLoader = new OCSPDataLoader();
+        onlineOCSPSource.setDataLoader(ocspDataLoader);
+        commonCertificateVerifier.setOcspSource(onlineOCSPSource);
+
+        PAdESService padesService =
+            new PAdESService(this.documentValidatorLOTL.getCertificateVerifier());
+        padesService.setTspSource(tsaSourceRegistry.getTSASource(TSASourceEnum.HARICA));
+
+        DSSDocument toBeSignedDocument =
+            new InMemoryDocument(Utils.fromBase64(signDocumentDto.getBytes()));
+
+        ToBeSigned dataToSign =
+            padesService.getDataToSign(toBeSignedDocument, padesSignatureParameters);
+
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+
+        messageDigest.update(dataToSign.getBytes());
+
+        byte[] digestBytes = messageDigest.digest();
+
+        RemoteProviderSignBufferPKCS1Request request = new RemoteProviderSignBufferPKCS1Request();
+        request.setKey(signDocumentDto.getKey());
+        request.setBufferToSign(Utils.toBase64(digestBytes));
+        request.setUsername(signDocumentDto.getUsername());
+        request.setPassword(signDocumentDto.getPassword());
+        request.setUrl(
+            String.format(
+                "%s://%s/%s",
+                "https", remoteProviderProperties.getEndpoint(), Path.REMOTE_SIGNING_BUFFER));
+
+        RemoteProviderSignBufferResponse response =
+            remoteProviderSignBuffer.executeRemoteProviderRequestResponse(
+                request,
+                RemoteProviderSignBufferResponse.class,
+                SignDocumentService.errorResponseFunction());
+
+        SignatureValue signatureValue =
+            new SignatureValue(
+                SignatureAlgorithm.RSA_SHA256, Utils.fromBase64(response.getSignature()));
+
+        DSSDocument signedDocument =
+            padesService.signDocument(toBeSignedDocument, padesSignatureParameters, signatureValue);
+
+        retryVisibleSignature = false;
+        base64SignedDocument = Utils.toBase64(Utils.toByteArray(signedDocument.openStream()));
+
+      } catch (Exception e) {
+        LOGGER.error(
+            "Could not produce signed document",
+            f(ServiceLogField.builder().details(e.getMessage()).build()));
+        if (e.getMessage()
+            .contains("The new signature field position overlaps with an existing annotation!")) {
+          visibleSignaturePosition++;
+          if (VisibleSignaturePosition.isLastPossiblePosition(visibleSignaturePosition)) {
+            signDocumentDto.setImageVisibility(false);
+          }
+          LOGGER.info(
+              String.format(
+                  "Retrying new visible image position(%s)",
+                  VisibleSignaturePosition.getPosition(visibleSignaturePosition)),
+              f(ServiceLogField.builder().details(e.getMessage()).build()));
+        } else {
+          throw new InternalServerErrorException(
+              "Could not produce signed document." + e.getMessage());
+        }
       }
-
-      CommonCertificateVerifier commonCertificateVerifier = new CommonCertificateVerifier();
-      commonCertificateVerifier.setCheckRevocationForUntrustedChains(true);
-      commonCertificateVerifier.setAlertOnMissingRevocationData(new ExceptionOnStatusAlert());
-
-      // CRLSource
-      OnlineCRLSource onlineCRLSource = new OnlineCRLSource();
-      CommonsDataLoader commonsHttpDataLoader = new CommonsDataLoader();
-      onlineCRLSource.setDataLoader(commonsHttpDataLoader);
-      commonCertificateVerifier.setCrlSource(onlineCRLSource);
-
-      // OCSPSource
-      OnlineOCSPSource onlineOCSPSource = new OnlineOCSPSource();
-      OCSPDataLoader ocspDataLoader = new OCSPDataLoader();
-      onlineOCSPSource.setDataLoader(ocspDataLoader);
-      commonCertificateVerifier.setOcspSource(onlineOCSPSource);
-
-      PAdESService padesService =
-          new PAdESService(this.documentValidatorLOTL.getCertificateVerifier());
-      padesService.setTspSource(tsaSourceRegistry.getTSASource(TSASourceEnum.HARICA));
-
-      DSSDocument toBeSignedDocument =
-          new InMemoryDocument(Utils.fromBase64(signDocumentDto.getBytes()));
-
-      ToBeSigned dataToSign =
-          padesService.getDataToSign(toBeSignedDocument, padesSignatureParameters);
-
-      MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-
-      messageDigest.update(dataToSign.getBytes());
-
-      byte[] digestBytes = messageDigest.digest();
-
-      RemoteProviderSignBufferPKCS1Request request = new RemoteProviderSignBufferPKCS1Request();
-      request.setKey(signDocumentDto.getKey());
-      request.setBufferToSign(Utils.toBase64(digestBytes));
-      request.setUsername(signDocumentDto.getUsername());
-      request.setPassword(signDocumentDto.getPassword());
-      request.setUrl(
-          String.format(
-              "%s://%s/%s",
-              "https", remoteProviderProperties.getEndpoint(), Path.REMOTE_SIGNING_BUFFER));
-
-      RemoteProviderSignBufferResponse response =
-          remoteProviderSignBuffer.executeRemoteProviderRequestResponse(
-              request,
-              RemoteProviderSignBufferResponse.class,
-              SignDocumentService.errorResponseFunction());
-
-      SignatureValue signatureValue =
-          new SignatureValue(
-              SignatureAlgorithm.RSA_SHA256, Utils.fromBase64(response.getSignature()));
-
-      DSSDocument signedDocument =
-          padesService.signDocument(toBeSignedDocument, padesSignatureParameters, signatureValue);
-
-      return Utils.toBase64(Utils.toByteArray(signedDocument.openStream()));
-
-    } catch (Exception e) {
-      LOGGER.error(
-          "Could not produce signed document",
-          f(ServiceLogField.builder().details(e.getMessage()).build()));
-      throw new InternalServerErrorException("Could not produce signed document." + e.getMessage());
     }
+    return base64SignedDocument;
   }
 }
