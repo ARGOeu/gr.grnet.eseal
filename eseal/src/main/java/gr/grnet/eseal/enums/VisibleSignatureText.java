@@ -4,5 +4,6 @@ public enum VisibleSignatureText {
   CN,
   OU,
   CN_OU,
+  STATIC,
   TEXT;
 }

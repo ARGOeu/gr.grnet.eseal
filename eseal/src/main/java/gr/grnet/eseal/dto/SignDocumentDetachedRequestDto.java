@@ -18,6 +18,7 @@ public class SignDocumentDetachedRequestDto extends SignDocumentRequestDto {
   @ValueOfEnum(
       groups = ValueOfEnumRequestFieldCheckGroup.class,
       enumClass = VisibleSignatureText.class,
-      message = "Possible values of property visibleSignatureText are [CN, OU, CN_OU, TEXT]")
-  private String visibleSignatureText = VisibleSignatureText.OU.name();
+      message =
+          "Possible values of property visibleSignatureText are [CN, OU, CN_OU, STATIC, TEXT]")
+  private String visibleSignatureText = VisibleSignatureText.STATIC.name();
 }
