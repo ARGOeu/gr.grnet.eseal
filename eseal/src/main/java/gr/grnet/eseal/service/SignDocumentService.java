@@ -157,10 +157,19 @@ public interface SignDocumentService {
                 (e) -> {
                   throw new InternalServerErrorException("Error with Signer's Certificate Subject");
                 });
+      case OU:
+        return Try.of(
+                () -> gr.grnet.eseal.utils.Utils.extractOUFromSubject(certificates.getSubject()))
+            .getOrElseThrow(
+                (e) -> {
+                  throw new InternalServerErrorException(
+                      "Error with Signer's Certificate Organisational Unit");
+                });
+      case STATIC:
+        return "Ο.Σ.Δ.Δ.Υ.Δ.Δ.";
       case TEXT:
         throw new InternalServerErrorException(
             "Using plain text on visible signature currently is not supported");
-
       default:
         return Try.of(
                 () -> gr.grnet.eseal.utils.Utils.extractOUFromSubject(certificates.getSubject()))
