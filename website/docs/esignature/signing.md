@@ -1,7 +1,7 @@
 ---
 id: signing
 title: PDF Signing API Calls
-sidebar_label: PDF Signing API Calls
+sidebar_position: 2
 keywords:
   - eseal
   - e-seal
@@ -62,7 +62,7 @@ Each username/password pair corresponds to a specific key.
 
 This API call does not send the entire PDF to the remote eseal provider for signing
 but rather only the digest(hash) of the provided document, and finally it combines
-the returned signature with the original pdf document.The signature will also be visible
+the returned signature with the original pdf document. The signature will also be visible
 containing an image and the static text 'Ο.Σ.Δ.Δ.Υ.Δ.Δ'.
 In case of an already existing signature
 in the document, the API will try the following positions in order before disabling
