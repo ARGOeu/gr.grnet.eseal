@@ -1,7 +1,7 @@
 ---
 id: postman
 title: Communicate with E-Signature API
-sidebar_label: Communicate with E-Signature API
+sidebar_position: 7
 keywords:
   - eseal
   - e-seal
@@ -26,8 +26,9 @@ keywords:
 
 In order to communicate with E-Signature Rest API the following postman components should both be imported on Postman platform.
 
-- <a target="_blank" href="/assets/eseal_environment.postman_environment.json">Postman Environment</a>
-- <a target="_blank" href="/assets/e_signature_rest_api.postman_collection.json">Postman Collection</a>
+
+[Postman Environment](./assets/eseal_environment.postman_environment.json)
+[Postman Collection](./assets/e_signature_rest_api.postman_collection.json)
 
 
 #### Postman Environment
