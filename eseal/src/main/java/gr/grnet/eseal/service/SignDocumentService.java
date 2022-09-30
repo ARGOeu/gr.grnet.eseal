@@ -3,7 +3,6 @@ package gr.grnet.eseal.service;
 import eu.europa.esig.dss.enumerations.SignerTextHorizontalAlignment;
 import eu.europa.esig.dss.enumerations.VisualSignatureAlignmentHorizontal;
 import eu.europa.esig.dss.enumerations.VisualSignatureAlignmentVertical;
-import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.model.x509.CertificateToken;
 import eu.europa.esig.dss.pades.SignatureImageParameters;
 import eu.europa.esig.dss.pades.SignatureImageTextParameters;
@@ -35,7 +34,6 @@ import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 
 public interface SignDocumentService {
@@ -227,11 +225,9 @@ public interface SignDocumentService {
     signatureImageParameters.setTextParameters(signatureImageTextParameters);
 
     // check if an image has been provided, otherwise use the default
-    if (StringUtils.isNotEmpty(imageBytes)) {
-      signatureImageParameters.setImage(new InMemoryDocument(Utils.fromBase64(imageBytes)));
-    } else {
-      signatureImageParameters.setImage(visibleSignatureProperties.getImageDocument());
-    }
+    // 20220523: provided images are not used anymore, a hardcoded single image is used for
+    // everything - NB: this is a difference that shouldn't be merged from devel GRNET branch
+    signatureImageParameters.setImage(visibleSignatureProperties.getImageDocument());
 
     switch (position) {
       case TOP_LEFT:

@@ -116,7 +116,7 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
 
         PAdESService padesService =
             new PAdESService(this.documentValidatorLOTL.getCertificateVerifier());
-        padesService.setTspSource(tsaSourceRegistry.getTSASource(TSASourceEnum.HARICA));
+        padesService.setTspSource(tsaSourceRegistry.getTSASource(TSASourceEnum.APED));
 
         DSSDocument toBeSignedDocument =
             new InMemoryDocument(Utils.fromBase64(signDocumentDto.getBytes()));
