@@ -1,7 +1,7 @@
 ---
 id: validation
 title: PDF Validation API Calls
-sidebar_label: PDF Validation API Calls
+sidebar_position: 5
 keywords:
   - eseal
   - e-seal

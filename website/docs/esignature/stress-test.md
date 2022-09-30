@@ -1,7 +1,7 @@
 ---
 id: stress-test
 title: Stress Test Report
-sidebar_label: Stress Test Report
+sidebar_position: 6
 keywords:
 - eseal
 - e-seal
@@ -31,7 +31,9 @@ over time.
 
 
 
-![Signing Test Plan](signing_test_plan.png)
+
+
+![Signing Test Plan](assets/signing_test_plan.png)
 
 #### Validation Test Plan
 
@@ -39,14 +41,14 @@ Below the test plan of [Validation endpoint](validation.md#request) is presented
 threads over time.
 
 
-![Validation Test Plan](validation_test_plan.png)
+![Validation Test Plan](assets/validation_test_plan.png)
 
 #### Stress Test Results
 
 The above test plans were executed by two clients simultaneously. You can find below the results of the described 
 testing process.
 
-![Stress Test Results](15_minutes_stress_test_report.png)
+![Stress Test Results](assets/15_minutes_stress_test_report.png)
 
 ### Stress Test of Remote Signing Detached
 
@@ -59,12 +61,12 @@ duration of stress test was 27 minutes.
 Below the test plan of [Remote Signing Detached endpoint](signing.md#request-1) is presented. In the following graph, we can see the number of active threads
 over time.
 
-![Signing Detached Test Plan](signing_detached_test_plan.png)
+![Signing Detached Test Plan](assets/signing_detached_test_plan.png)
 
 #### Stress Test Results
 
 The above test plan was executed by one client. You can find below the results of the described
 testing process.
 
-![Stress Test Results](signing_detached_stress_test_report.png)
+![Stress Test Results](assets/signing_detached_stress_test_report.png)
 

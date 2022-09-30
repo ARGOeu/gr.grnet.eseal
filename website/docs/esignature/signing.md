@@ -1,7 +1,7 @@
 ---
 id: signing
 title: PDF Signing API Calls
-sidebar_label: PDF Signing API Calls
+sidebar_position: 2
 keywords:
   - eseal
   - e-seal
@@ -62,8 +62,8 @@ Each username/password pair corresponds to a specific key.
 
 This API call does not send the entire PDF to the remote eseal provider for signing
 but rather only the digest(hash) of the provided document, and finally it combines
-the returned signature with the original pdf document.The signature will also be visible
-containing an image and the static text 'Ï.Ó.Ä.Ä.Õ.Ä.Ä'.
+the returned signature with the original pdf document. The signature will also be visible
+containing an image and the static text 'ÎŸ.Î£.Î”.Î”.Î¥.Î”.Î”'.
 In case of an already existing signature
 in the document, the API will try the following positions in order before disabling
 the visibility: TOP_LEFT -> BOTTOM_LEFT -> TOP_RIGHT -> BOTTOM_RIGHT -> INVISIBLE.
@@ -91,7 +91,7 @@ override the default, in base64 encoded format.
 
 - `visibleSignatureText(optional, default=STATIC)` : Controls the format of the text that is included
 in the visible signature.
-    - `STATIC` : Includes the static text of 'Ï.Ó.Ä.Ä.Õ.Ä.Ä.'.
+    - `STATIC` : Includes the static text of 'ÎŸ.Î£.Î”.Î”.Î¥.Î”.Î”.'.
     - `CN_OU` : Includes the Common Name/Organisational Unit of the signing certificate.
     - `CN` :  Includes the Common Name of the signing certificate.
     - `OU` : Includes the Organisational Unit of the signing certificate.

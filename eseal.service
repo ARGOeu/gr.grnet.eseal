@@ -1,0 +1,16 @@
+[Unit]
+Description=E-seal API for signing,validating and timestamping documents.
+Documentation=https://argoeu.github.io/gr.grnet.eseal/
+
+[Service]
+User=eseal
+Group=eseal
+WorkingDirectory=/var/www/eseal
+ExecStart=/var/www/eseal/eseal.jar
+SyslogIdentifier=eseal
+Restart=on-failure
+RestartSec=5s
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target

@@ -1,7 +1,7 @@
 ---
 id: timestamp
 title: PDF Timestamp API Calls
-sidebar_label: PDF Timestamp API Calls
+sidebar_position: 4
 keywords:
   - eseal
   - e-seal
