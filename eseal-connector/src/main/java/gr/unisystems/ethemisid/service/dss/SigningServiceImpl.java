@@ -32,13 +32,11 @@ public class SigningServiceImpl extends RestClient implements SigningService {
          throw new IllegalArgumentException("fileBytes has to be supplied");
       }
       
-      if (log.isDebugEnabled()) {
-         log.debug("validate called for file of size = " + bytes.length + " and name = " + (filename != null ? filename : "null"));
-      }      
+      log.debug("sign() called for file of size = " + bytes.length + " and name = " + (filename != null ? filename : "null"));
 
       byte[] ret = null;
       DssSignRequest req = prepareInput(bytes, imageBytes, filename, username, password, key, imageVisibility);
-      debugLogRequest(req);
+      // debugLogRequest(req); when log4j is used in main Osddydd backend application, somehow Slf4j isDebugEnabled returns false anyway
 
       // Jersey 2.x
       //DssSignResponse result = getClient().target(getUrl()).request(MediaType.APPLICATION_JSON).post(Entity.json(req), DssSignResponse.class);
@@ -46,9 +44,11 @@ public class SigningServiceImpl extends RestClient implements SigningService {
       WebResource webResource = getClient().resource(getUrl());
       ObjectMapper mapper = ObjectMapperContextResolver.createMapper();
       String strReq = mapper.writeValueAsString(req);
+      log.debug("Sending sign request of length: " + strReq.length());
       ClientResponse response = webResource.type("application/json").post(ClientResponse.class, strReq);
       //DssSignResponse result = response.getEntity(DssSignResponse.class);
       String strRet = response.getEntity(String.class);
+      log.debug("Received sign response of length: " + strRet.length());
       DssSignResponse result = mapper.readValue(strRet, DssSignResponse.class);
       
       if (result == null) {

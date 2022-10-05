@@ -12,19 +12,16 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.client.apache.ApacheHttpClient;
 import com.sun.jersey.client.apache.ApacheHttpClientHandler;
 import com.sun.jersey.client.apache.config.DefaultApacheHttpClientConfig;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
-
-import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
 
 
 public class RestClient {
    private String _url;
    private Client client = null;
-   private int _connectionTimeoutMs = 5000;
-   private int _socketTimeoutMs = 10000;
+   private int _connectionTimeoutMs = 0; //5000;
+   private int _socketTimeoutMs = 0;//10000;
    
    public void config(String url, int connectionTimeout, int socketTimeout) {
       _url = url;
@@ -47,7 +44,7 @@ public class RestClient {
       MultiThreadedHttpConnectionManager connectionManager = new MultiThreadedHttpConnectionManager();
       connectionManager.getParams().setConnectionTimeout(_connectionTimeoutMs);
       connectionManager.getParams().setSoTimeout(_socketTimeoutMs);
-      connectionManager.getParams().setDefaultMaxConnectionsPerHost(10);
+      connectionManager.getParams().setDefaultMaxConnectionsPerHost(50);
       HttpClient httpClient = new HttpClient(connectionManager);
       ApacheHttpClientHandler clientHandler = new ApacheHttpClientHandler(httpClient);
       ClientHandler root = new ApacheHttpClient(clientHandler);
