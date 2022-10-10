@@ -3,6 +3,7 @@ package gr.grnet.eseal.service;
 import static net.logstash.logback.argument.StructuredArguments.f;
 
 import eu.europa.esig.dss.alert.ExceptionOnStatusAlert;
+import eu.europa.esig.dss.alert.LogOnStatusAlert;
 import eu.europa.esig.dss.enumerations.DigestAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureAlgorithm;
 import eu.europa.esig.dss.enumerations.SignatureLevel;
@@ -19,6 +20,7 @@ import eu.europa.esig.dss.service.http.commons.CommonsDataLoader;
 import eu.europa.esig.dss.service.http.commons.OCSPDataLoader;
 import eu.europa.esig.dss.service.ocsp.OnlineOCSPSource;
 import eu.europa.esig.dss.utils.Utils;
+import eu.europa.esig.dss.validation.CRLFirstRevocationDataLoadingStrategy;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
 import gr.grnet.eseal.config.RemoteProviderProperties;
 import gr.grnet.eseal.config.VisibleSignatureProperties;
@@ -28,12 +30,10 @@ import gr.grnet.eseal.enums.TSASourceEnum;
 import gr.grnet.eseal.enums.VisibleSignaturePosition;
 import gr.grnet.eseal.exception.InternalServerErrorException;
 import gr.grnet.eseal.logging.ServiceLogField;
-import gr.grnet.eseal.sign.RemoteProviderCertificates;
 import gr.grnet.eseal.sign.RemoteProviderSignBuffer;
 import gr.grnet.eseal.sign.request.RemoteProviderSignBufferPKCS1Request;
 import gr.grnet.eseal.sign.response.RemoteProviderSignBufferResponse;
 import gr.grnet.eseal.timestamp.TSASourceRegistry;
-import gr.grnet.eseal.validation.DocumentValidatorLOTL;
 import java.security.MessageDigest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,24 +49,18 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
   private final VisibleSignatureProperties visibleSignatureProperties;
   private final TSASourceRegistry tsaSourceRegistry;
   private final RemoteProviderProperties remoteProviderProperties;
-  private final RemoteProviderCertificates remoteProviderCertificates;
   private final RemoteProviderSignBuffer remoteProviderSignBuffer;
-  private final DocumentValidatorLOTL documentValidatorLOTL;
 
   @Autowired
   public RemoteSignDocumentServicePKCS1(
       VisibleSignatureProperties visibleSignatureProperties,
       TSASourceRegistry tsaSourceRegistry,
       RemoteProviderProperties remoteProviderProperties,
-      RemoteProviderCertificates remoteProviderCertificates,
-      RemoteProviderSignBuffer remoteProviderSignBuffer,
-      DocumentValidatorLOTL documentValidatorLOTL) {
+      RemoteProviderSignBuffer remoteProviderSignBuffer) {
     this.visibleSignatureProperties = visibleSignatureProperties;
     this.tsaSourceRegistry = tsaSourceRegistry;
     this.remoteProviderProperties = remoteProviderProperties;
-    this.remoteProviderCertificates = remoteProviderCertificates;
     this.remoteProviderSignBuffer = remoteProviderSignBuffer;
-    this.documentValidatorLOTL = documentValidatorLOTL;
   }
 
   @Override
@@ -114,9 +108,18 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
         onlineOCSPSource.setDataLoader(ocspDataLoader);
         commonCertificateVerifier.setOcspSource(onlineOCSPSource);
 
-        PAdESService padesService =
-            new PAdESService(this.documentValidatorLOTL.getCertificateVerifier());
-        padesService.setTspSource(tsaSourceRegistry.getTSASource(TSASourceEnum.APED));
+        commonCertificateVerifier.setAlertOnMissingRevocationData(new ExceptionOnStatusAlert());
+        commonCertificateVerifier.setAlertOnUncoveredPOE(new LogOnStatusAlert());
+        commonCertificateVerifier.setAlertOnRevokedCertificate(new ExceptionOnStatusAlert());
+        commonCertificateVerifier.setAlertOnInvalidTimestamp(new ExceptionOnStatusAlert());
+        commonCertificateVerifier.setAlertOnNoRevocationAfterBestSignatureTime(
+            new LogOnStatusAlert());
+        commonCertificateVerifier.setAlertOnExpiredSignature(new ExceptionOnStatusAlert());
+        commonCertificateVerifier.setRevocationDataLoadingStrategy(
+            new CRLFirstRevocationDataLoadingStrategy());
+
+        PAdESService padesService = new PAdESService(commonCertificateVerifier);
+        padesService.setTspSource(tsaSourceRegistry.getTSASource(TSASourceEnum.HARICA));
 
         DSSDocument toBeSignedDocument =
             new InMemoryDocument(Utils.fromBase64(signDocumentDto.getBytes()));
@@ -172,6 +175,7 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
                   VisibleSignaturePosition.getPosition(visibleSignaturePosition)),
               f(ServiceLogField.builder().details(e.getMessage()).build()));
         } else {
+          e.printStackTrace();
           throw new InternalServerErrorException(
               "Could not produce signed document." + e.getMessage());
         }
