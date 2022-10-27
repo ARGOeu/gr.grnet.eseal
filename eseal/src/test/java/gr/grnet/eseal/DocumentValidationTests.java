@@ -226,9 +226,11 @@ class DocumentValidationTests {
     this.documentValidatorLOTL
         .onlineLOTLDataLoader()
         .get("https://www.ssi.gouv.fr/eidas/TL-FR.xml");
-    this.documentValidatorLOTL
-        .onlineLOTLDataLoader()
-        .get("https://sede.minetur.gob.es/Prestadores/TSL/TSL.xml");
+    //
+    // NOT ACCESSIBLE ANYMORE
+    //    this.documentValidatorLOTL
+    //        .onlineLOTLDataLoader()
+    //        .get("https://sede.minetur.gob.es/Prestadores/TSL/TSL.xml");
     this.documentValidatorLOTL
         .onlineLOTLDataLoader()
         .get(

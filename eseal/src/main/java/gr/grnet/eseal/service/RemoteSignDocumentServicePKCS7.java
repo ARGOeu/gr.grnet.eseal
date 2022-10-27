@@ -17,6 +17,7 @@ import gr.grnet.eseal.config.RemoteProviderProperties;
 import gr.grnet.eseal.config.VisibleSignatureProperties;
 import gr.grnet.eseal.dto.SignDocumentDto;
 import gr.grnet.eseal.enums.Path;
+import gr.grnet.eseal.enums.VisibleSignaturePosition;
 import gr.grnet.eseal.exception.InternalServerErrorException;
 import gr.grnet.eseal.logging.ServiceLogField;
 import gr.grnet.eseal.sign.RemoteProviderCertificates;
@@ -66,7 +67,8 @@ public class RemoteSignDocumentServicePKCS7 implements SignDocumentService {
             signDocumentDto.getSigningDate(),
             visibleSignatureProperties,
             signDocumentDto.getSignerInfo(),
-            signDocumentDto.getImageBytes());
+            signDocumentDto.getImageBytes(),
+            VisibleSignaturePosition.TOP_LEFT);
 
     // Initialize the PaDES parameters
     PAdESSignatureParameters padesSignatureParameters = new PAdESSignatureParameters();

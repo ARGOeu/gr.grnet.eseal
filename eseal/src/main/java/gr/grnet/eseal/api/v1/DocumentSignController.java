@@ -98,6 +98,7 @@ public class DocumentSignController {
                     .password(signDocumentDetachedRequestDto.getPassword())
                     .bytes(signDocumentDetachedRequestDto.getToSignDocument().getBytes())
                     .imageBytes(signDocumentDetachedRequestDto.getImageBytes())
+                    .imageVisibility(signDocumentDetachedRequestDto.getImageVisibility())
                     .signingDate(new Date())
                     .signerInfo(
                         SignDocumentService.getSignerInfo(

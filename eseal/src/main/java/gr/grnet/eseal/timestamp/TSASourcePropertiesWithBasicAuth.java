@@ -10,7 +10,7 @@ import lombok.Setter;
 public class TSASourcePropertiesWithBasicAuth extends TSASourceProperties {
 
   /** TSA scheme */
-  private String scheme = "https";
+  private String scheme = "Basic";
 
   /** TSA host */
   private String host;
