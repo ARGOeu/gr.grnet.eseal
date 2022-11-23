@@ -46,6 +46,10 @@ public class TimestampDocumentService {
     // Default configs
     certificateVerifier.setAlertOnMissingRevocationData(new ExceptionOnStatusAlert());
     certificateVerifier.setCheckRevocationForUntrustedChains(false);
+
+    // this should not be necessary as TimestampDataLoader is and should be set on tspSource further
+    // below - certificate verifier should not need to make request to TSA
+    // certificateVerifier.setDataLoader(new TimestampDataLoader());
     certificateVerifier.setCrlSource(new OnlineCRLSource());
     certificateVerifier.setOcspSource(new OnlineOCSPSource());
     certificateVerifier.setAIASource(new DefaultAIASource(new CommonsDataLoader()));

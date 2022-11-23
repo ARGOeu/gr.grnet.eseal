@@ -21,6 +21,7 @@ import eu.europa.esig.dss.service.http.commons.OCSPDataLoader;
 import eu.europa.esig.dss.service.ocsp.OnlineOCSPSource;
 import eu.europa.esig.dss.spi.x509.aia.DefaultAIASource;
 import eu.europa.esig.dss.utils.Utils;
+import eu.europa.esig.dss.validation.CRLFirstRevocationDataLoadingStrategyFactory;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
 import gr.grnet.eseal.config.RemoteProviderProperties;
 import gr.grnet.eseal.config.VisibleSignatureProperties;
@@ -122,6 +123,12 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
         commonCertificateVerifier.setAlertOnNoRevocationAfterBestSignatureTime(
             new LogOnStatusAlert());
         commonCertificateVerifier.setAlertOnExpiredSignature(new ExceptionOnStatusAlert());
+
+        // since DSS 5.11 it is required to set the factory, instead of the strategy
+        // in order to circumvent concurrency issues
+        // https://dss.nowina.lu/doc/dss-documentation.html#certificateVerifier
+        commonCertificateVerifier.setRevocationDataLoadingStrategyFactory(
+            new CRLFirstRevocationDataLoadingStrategyFactory());
 
         PAdESService padesService = new PAdESService(commonCertificateVerifier);
         padesService.setTspSource(tsaSourceRegistry.getTSASource(TSASourceEnum.HARICA));

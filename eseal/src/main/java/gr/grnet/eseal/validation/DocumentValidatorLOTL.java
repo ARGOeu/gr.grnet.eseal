@@ -105,6 +105,10 @@ public class DocumentValidatorLOTL {
     // Default configs
     certificateVerifier.setAlertOnMissingRevocationData(new ExceptionOnStatusAlert());
     certificateVerifier.setCheckRevocationForUntrustedChains(false);
+
+    // setDataLoader has been deprecated in 5.9 from 5.6 in favor of AIASource and default
+    // OCSPFirstRevocationDataLoadingStrategy
+    // certificateVerifier.setDataLoader(new CommonsDataLoader());
     certificateVerifier.setCrlSource(new OnlineCRLSource());
     certificateVerifier.setOcspSource(new OnlineOCSPSource());
     certificateVerifier.setAIASource(new DefaultAIASource(new CommonsDataLoader()));
