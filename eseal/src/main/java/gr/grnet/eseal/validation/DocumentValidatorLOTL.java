@@ -105,6 +105,7 @@ public class DocumentValidatorLOTL {
     // Default configs
     certificateVerifier.setAlertOnMissingRevocationData(new ExceptionOnStatusAlert());
     certificateVerifier.setCheckRevocationForUntrustedChains(false);
+    certificateVerifier.setDataLoader(new CommonsDataLoader());
     certificateVerifier.setCrlSource(new OnlineCRLSource());
     certificateVerifier.setOcspSource(new OnlineOCSPSource());
     certificateVerifier.setAIASource(new DefaultAIASource(new CommonsDataLoader()));

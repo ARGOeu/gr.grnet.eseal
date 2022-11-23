@@ -139,7 +139,7 @@
     </dependencies>
 
     <!-- Repository for the dss module -->
-    <!-- dedicated repositories are no longer necessary for DSS 5.11.1 and higher as they are not being released in Maven Central
+    <!-- dedicated repositories are no longer necessary for DSS 5.11.1 and higher as they are now being released in Maven Central
     <repositories>
         <repository>
             <id>cefdigital</id>
