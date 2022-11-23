@@ -13,6 +13,7 @@ import eu.europa.esig.dss.spi.client.http.DSSFileLoader;
 import eu.europa.esig.dss.spi.client.http.IgnoreDataLoader;
 import eu.europa.esig.dss.spi.tsl.TrustedListsCertificateSource;
 import eu.europa.esig.dss.spi.x509.KeyStoreCertificateSource;
+import eu.europa.esig.dss.spi.x509.aia.DefaultAIASource;
 import eu.europa.esig.dss.tsl.alerts.LOTLAlert;
 import eu.europa.esig.dss.tsl.alerts.TLAlert;
 import eu.europa.esig.dss.tsl.alerts.detections.LOTLLocationChangeDetection;
@@ -107,6 +108,7 @@ public class DocumentValidatorLOTL {
     certificateVerifier.setDataLoader(new CommonsDataLoader());
     certificateVerifier.setCrlSource(new OnlineCRLSource());
     certificateVerifier.setOcspSource(new OnlineOCSPSource());
+    certificateVerifier.setAIASource(new DefaultAIASource(new CommonsDataLoader()));
 
     return certificateVerifier;
   }

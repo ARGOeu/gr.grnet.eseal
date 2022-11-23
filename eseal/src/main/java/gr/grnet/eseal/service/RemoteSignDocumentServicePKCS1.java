@@ -19,6 +19,7 @@ import eu.europa.esig.dss.service.crl.OnlineCRLSource;
 import eu.europa.esig.dss.service.http.commons.CommonsDataLoader;
 import eu.europa.esig.dss.service.http.commons.OCSPDataLoader;
 import eu.europa.esig.dss.service.ocsp.OnlineOCSPSource;
+import eu.europa.esig.dss.spi.x509.aia.DefaultAIASource;
 import eu.europa.esig.dss.utils.Utils;
 import eu.europa.esig.dss.validation.CRLFirstRevocationDataLoadingStrategy;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
@@ -107,6 +108,9 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
         OCSPDataLoader ocspDataLoader = new OCSPDataLoader();
         onlineOCSPSource.setDataLoader(ocspDataLoader);
         commonCertificateVerifier.setOcspSource(onlineOCSPSource);
+
+        // AIA Source
+        commonCertificateVerifier.setAIASource(new DefaultAIASource(new CommonsDataLoader()));
 
         commonCertificateVerifier.setAlertOnMissingRevocationData(new ExceptionOnStatusAlert());
         commonCertificateVerifier.setAlertOnUncoveredPOE(new LogOnStatusAlert());
