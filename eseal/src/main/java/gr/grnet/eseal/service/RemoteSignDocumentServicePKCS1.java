@@ -109,12 +109,9 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
         onlineOCSPSource.setDataLoader(ocspDataLoader);
         commonCertificateVerifier.setOcspSource(onlineOCSPSource);
 
-<<<<<<< HEAD
-=======
         // AIA Source
         commonCertificateVerifier.setAIASource(new DefaultAIASource(new CommonsDataLoader()));
 
->>>>>>> 62b1dfc82e934267ac90a5b8c4976e2ebe15c9e8
         commonCertificateVerifier.setAlertOnMissingRevocationData(new ExceptionOnStatusAlert());
         commonCertificateVerifier.setAlertOnUncoveredPOE(new LogOnStatusAlert());
         commonCertificateVerifier.setAlertOnRevokedCertificate(new ExceptionOnStatusAlert());
