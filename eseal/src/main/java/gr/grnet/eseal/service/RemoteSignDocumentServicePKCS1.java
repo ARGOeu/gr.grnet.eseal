@@ -21,7 +21,6 @@ import eu.europa.esig.dss.service.http.commons.OCSPDataLoader;
 import eu.europa.esig.dss.service.ocsp.OnlineOCSPSource;
 import eu.europa.esig.dss.spi.x509.aia.DefaultAIASource;
 import eu.europa.esig.dss.utils.Utils;
-import eu.europa.esig.dss.validation.CRLFirstRevocationDataLoadingStrategy;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
 import gr.grnet.eseal.config.RemoteProviderProperties;
 import gr.grnet.eseal.config.VisibleSignatureProperties;
@@ -119,8 +118,6 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
         commonCertificateVerifier.setAlertOnNoRevocationAfterBestSignatureTime(
             new LogOnStatusAlert());
         commonCertificateVerifier.setAlertOnExpiredSignature(new ExceptionOnStatusAlert());
-        commonCertificateVerifier.setRevocationDataLoadingStrategy(
-            new CRLFirstRevocationDataLoadingStrategy());
 
         PAdESService padesService = new PAdESService(commonCertificateVerifier);
         padesService.setTspSource(tsaSourceRegistry.getTSASource(TSASourceEnum.HARICA));

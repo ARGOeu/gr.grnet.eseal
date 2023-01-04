@@ -11,7 +11,6 @@ import eu.europa.esig.dss.pades.PAdESTimestampParameters;
 import eu.europa.esig.dss.pades.signature.PAdESService;
 import eu.europa.esig.dss.service.crl.OnlineCRLSource;
 import eu.europa.esig.dss.service.http.commons.CommonsDataLoader;
-import eu.europa.esig.dss.service.http.commons.TimestampDataLoader;
 import eu.europa.esig.dss.service.ocsp.OnlineOCSPSource;
 import eu.europa.esig.dss.spi.x509.aia.DefaultAIASource;
 import eu.europa.esig.dss.utils.Utils;
@@ -47,7 +46,6 @@ public class TimestampDocumentService {
     // Default configs
     certificateVerifier.setAlertOnMissingRevocationData(new ExceptionOnStatusAlert());
     certificateVerifier.setCheckRevocationForUntrustedChains(false);
-    certificateVerifier.setDataLoader(new TimestampDataLoader());
     certificateVerifier.setCrlSource(new OnlineCRLSource());
     certificateVerifier.setOcspSource(new OnlineOCSPSource());
     certificateVerifier.setAIASource(new DefaultAIASource(new CommonsDataLoader()));
