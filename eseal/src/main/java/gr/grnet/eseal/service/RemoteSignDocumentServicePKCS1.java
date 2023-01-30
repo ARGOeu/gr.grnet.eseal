@@ -99,18 +99,22 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
 
         // CRLSource
         OnlineCRLSource onlineCRLSource = new OnlineCRLSource();
-        CommonsDataLoader commonsHttpDataLoader = new CommonsDataLoader();
-        onlineCRLSource.setDataLoader(commonsHttpDataLoader);
+        onlineCRLSource.setDataLoader(this.commonsDataLoaderWithCustomTimeouts());
         commonCertificateVerifier.setCrlSource(onlineCRLSource);
 
         // OCSPSource
         OnlineOCSPSource onlineOCSPSource = new OnlineOCSPSource();
         OCSPDataLoader ocspDataLoader = new OCSPDataLoader();
+        ocspDataLoader.setTimeoutConnection(this.remoteProviderProperties.getConnectTimeout());
+        ocspDataLoader.setTimeoutSocket(this.remoteProviderProperties.getSocketConnectTimeout());
+        ocspDataLoader.setTimeoutConnectionRequest(
+            this.remoteProviderProperties.getRequestConnectTimeout());
         onlineOCSPSource.setDataLoader(ocspDataLoader);
         commonCertificateVerifier.setOcspSource(onlineOCSPSource);
 
         // AIA Source
-        commonCertificateVerifier.setAIASource(new DefaultAIASource(new CommonsDataLoader()));
+        commonCertificateVerifier.setAIASource(
+            new DefaultAIASource(this.commonsDataLoaderWithCustomTimeouts()));
 
         commonCertificateVerifier.setAlertOnMissingRevocationData(new ExceptionOnStatusAlert());
         commonCertificateVerifier.setAlertOnUncoveredPOE(new LogOnStatusAlert());
@@ -186,5 +190,14 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
       }
     }
     return base64SignedDocument;
+  }
+
+  private CommonsDataLoader commonsDataLoaderWithCustomTimeouts() {
+    CommonsDataLoader cdl = new CommonsDataLoader();
+    cdl.setTimeoutConnection(this.remoteProviderProperties.getConnectTimeout() * 1000);
+    cdl.setTimeoutSocket(this.remoteProviderProperties.getSocketConnectTimeout() * 10000);
+    cdl.setTimeoutConnectionRequest(
+        this.remoteProviderProperties.getRequestConnectTimeout() * 1000);
+    return cdl;
   }
 }

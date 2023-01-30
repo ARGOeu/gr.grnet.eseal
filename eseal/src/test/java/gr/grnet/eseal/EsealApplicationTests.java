@@ -110,6 +110,9 @@ class EsealApplicationTests {
         .isEqualTo(this.remoteProviderProperties.getTruststoreFile());
     assertThat("providerpass").isEqualTo(this.remoteProviderProperties.getTruststorePassword());
     assertThat("JKS").isEqualTo(this.remoteProviderProperties.getTruststoreType());
+    assertThat(60).isEqualTo(this.remoteProviderProperties.getSocketConnectTimeout());
+    assertThat(60).isEqualTo(this.remoteProviderProperties.getConnectTimeout());
+    assertThat(60).isEqualTo(this.remoteProviderProperties.getRequestConnectTimeout());
   }
 
   @Test
