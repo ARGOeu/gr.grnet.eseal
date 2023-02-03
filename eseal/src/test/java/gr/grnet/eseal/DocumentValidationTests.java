@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.europa.esig.dss.service.http.commons.CommonsDataLoader;
 import gr.grnet.eseal.dto.SignedDocument;
 import gr.grnet.eseal.dto.ValidateDocumentRequestDto;
 import gr.grnet.eseal.exception.APIError;
@@ -219,16 +220,17 @@ class DocumentValidationTests {
   void LOTLOnlineDataLoaderAccessSuccess() throws Exception {
 
     // Make sure the data loader can at least access all the following urls
-
     this.documentValidatorLOTL
         .onlineLOTLDataLoader()
         .get("https://ec.europa.eu/tools/lotl/eu-lotl.xml");
-    this.documentValidatorLOTL
-        .onlineLOTLDataLoader()
-        .get("https://www.ssi.gouv.fr/eidas/TL-FR.xml");
-    this.documentValidatorLOTL
-        .onlineLOTLDataLoader()
-        .get("https://sede.minetur.gob.es/Prestadores/TSL/TSL.xml");
+    CommonsDataLoader r = this.documentValidatorLOTL.onlineLOTLDataLoader();
+    r.setSslProtocol("TLSv1.3");
+    r.get("https://ssi.gouv.fr/uploads/tl-fr.xml");
+    //
+    // NOT ACCESSIBLE ANYMORE
+    //    this.documentValidatorLOTL
+    //        .onlineLOTLDataLoader()
+    //        .get("https://sede.minetur.gob.es/Prestadores/TSL/TSL.xml");
     this.documentValidatorLOTL
         .onlineLOTLDataLoader()
         .get(

@@ -93,7 +93,7 @@ class EsealApplicationTests {
     assertThat("JKS").isEqualTo(this.haricaTSPSourceProperties.getTruststore().getType());
     assertThat("qts.harica.gr").isEqualTo(this.haricaTSPSourceProperties.getHost());
     assertThat(443).isEqualTo(this.haricaTSPSourceProperties.getPort());
-    assertThat("https").isEqualTo(this.haricaTSPSourceProperties.getScheme());
+    assertThat("Basic").isEqualTo(this.haricaTSPSourceProperties.getScheme());
     assertThat("test-user").isEqualTo(this.haricaTSPSourceProperties.getUsername());
     assertThat("test-pass").isEqualTo(this.haricaTSPSourceProperties.getPassword());
   }
@@ -110,6 +110,9 @@ class EsealApplicationTests {
         .isEqualTo(this.remoteProviderProperties.getTruststoreFile());
     assertThat("providerpass").isEqualTo(this.remoteProviderProperties.getTruststorePassword());
     assertThat("JKS").isEqualTo(this.remoteProviderProperties.getTruststoreType());
+    assertThat(60).isEqualTo(this.remoteProviderProperties.getSocketConnectTimeout());
+    assertThat(60).isEqualTo(this.remoteProviderProperties.getConnectTimeout());
+    assertThat(60).isEqualTo(this.remoteProviderProperties.getRequestConnectTimeout());
   }
 
   @Test
@@ -125,7 +128,7 @@ class EsealApplicationTests {
     DSSDocument imageDocument =
         new InMemoryDocument(
             VisibleSignaturePropertiesBean.class.getResourceAsStream(
-                "/visible-signature/".concat("ste.jpg")));
+                "/visible-signature/".concat("osddydd.png")));
 
     assertThat(this.visibleSignatureProperties.getImageDocument().getDigest(DigestAlgorithm.SHA256))
         .isEqualTo(imageDocument.getDigest(DigestAlgorithm.SHA256));

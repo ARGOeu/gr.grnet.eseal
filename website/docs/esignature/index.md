@@ -1,7 +1,7 @@
 ---
 id: index
 title: E-seal REST API Documentation
-sidebar_label: Documentation contents
+sidebar_position: 1
 slug: /
 keywords:
   - eseal

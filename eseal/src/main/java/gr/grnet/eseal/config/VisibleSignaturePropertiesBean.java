@@ -22,9 +22,9 @@ public class VisibleSignaturePropertiesBean {
     DSSDocument imageDocument =
         new InMemoryDocument(
             VisibleSignaturePropertiesBean.class.getResourceAsStream(
-                "/visible-signature/".concat("ste.jpg")));
-    imageDocument.setMimeType(MimeType.JPEG);
-    imageDocument.setName("ste.jpg");
+                "/visible-signature/".concat("osddydd.png")));
+    imageDocument.setMimeType(MimeType.PNG);
+    imageDocument.setName("osddydd.png");
 
     visibleSignatureProperties.setImageDocument(imageDocument);
 

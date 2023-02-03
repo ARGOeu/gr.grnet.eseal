@@ -33,6 +33,18 @@ public class RemoteProviderProperties {
   @Value("${eseal.remote.provider.retry.interval}")
   private int retryInterval;
 
+  /** Time in seconds for socket connect timeout */
+  @Value("${eseal.remote.provider.socket.connect.timeout}")
+  private int socketConnectTimeout;
+
+  /** Time in seconds for connect timeout */
+  @Value("${eseal.remote.provider.connect.timeout}")
+  private int connectTimeout;
+
+  /** Time in seconds for request connect timeout */
+  @Value("${eseal.remote.provider.connect.timeout}")
+  private int requestConnectTimeout;
+
   /**
    * Time in seconds that indicate for what time values should we wait for a new token to get
    * generated rather than using the already created one which near expiration

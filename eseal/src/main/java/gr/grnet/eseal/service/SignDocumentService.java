@@ -11,6 +11,7 @@ import eu.europa.esig.dss.utils.Utils;
 import gr.grnet.eseal.config.VisibleSignatureProperties;
 import gr.grnet.eseal.dto.SignDocumentDto;
 import gr.grnet.eseal.enums.Path;
+import gr.grnet.eseal.enums.VisibleSignaturePosition;
 import gr.grnet.eseal.enums.VisibleSignatureText;
 import gr.grnet.eseal.exception.InternalServerErrorException;
 import gr.grnet.eseal.exception.InvalidTOTPException;
@@ -156,10 +157,19 @@ public interface SignDocumentService {
                 (e) -> {
                   throw new InternalServerErrorException("Error with Signer's Certificate Subject");
                 });
+      case OU:
+        return Try.of(
+                () -> gr.grnet.eseal.utils.Utils.extractOUFromSubject(certificates.getSubject()))
+            .getOrElseThrow(
+                (e) -> {
+                  throw new InternalServerErrorException(
+                      "Error with Signer's Certificate Organisational Unit");
+                });
+      case STATIC:
+        return "Ο.Σ.Δ.Δ.Υ.Δ.Δ.";
       case TEXT:
         throw new InternalServerErrorException(
             "Using plain text on visible signature currently is not supported");
-
       default:
         return Try.of(
                 () -> gr.grnet.eseal.utils.Utils.extractOUFromSubject(certificates.getSubject()))
@@ -196,7 +206,8 @@ public interface SignDocumentService {
       Date signingDate,
       VisibleSignatureProperties visibleSignatureProperties,
       String signerInfo,
-      String imageBytes) {
+      String imageBytes,
+      VisibleSignaturePosition position) {
 
     // visible signature text
     ZonedDateTime z =
@@ -221,8 +232,27 @@ public interface SignDocumentService {
     } else {
       signatureImageParameters.setImage(visibleSignatureProperties.getImageDocument());
     }
-    signatureImageParameters.setAlignmentHorizontal(VisualSignatureAlignmentHorizontal.LEFT);
-    signatureImageParameters.setAlignmentVertical(VisualSignatureAlignmentVertical.TOP);
+
+    switch (position) {
+      case TOP_LEFT:
+        signatureImageParameters.setAlignmentHorizontal(VisualSignatureAlignmentHorizontal.LEFT);
+        signatureImageParameters.setAlignmentVertical(VisualSignatureAlignmentVertical.TOP);
+        break;
+      case TOP_RIGHT:
+        signatureImageParameters.setAlignmentHorizontal(VisualSignatureAlignmentHorizontal.RIGHT);
+        signatureImageParameters.setAlignmentVertical(VisualSignatureAlignmentVertical.TOP);
+        break;
+      case BOTTOM_LEFT:
+        signatureImageParameters.setAlignmentHorizontal(VisualSignatureAlignmentHorizontal.LEFT);
+        signatureImageParameters.setAlignmentVertical(VisualSignatureAlignmentVertical.BOTTOM);
+        break;
+      case BOTTOM_RIGHT:
+        signatureImageParameters.setAlignmentHorizontal(VisualSignatureAlignmentHorizontal.RIGHT);
+        signatureImageParameters.setAlignmentVertical(VisualSignatureAlignmentVertical.BOTTOM);
+        break;
+      default:
+        break;
+    }
 
     return signatureImageParameters;
   }
