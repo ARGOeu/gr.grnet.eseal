@@ -29,9 +29,6 @@ import org.springframework.context.annotation.Configuration;
 public class RemoteHttpEsealClientBean {
 
   private final RemoteProviderProperties remoteProviderProperties;
-  private static final int SOCKET_TIMEOUT = 30000;
-  private static final int CONNECTION_TIMEOUT = 30000;
-  private static final int CONNECTION_REQUEST_TIMEOUT = 30000;
 
   @Autowired
   public RemoteHttpEsealClientBean(RemoteProviderProperties remoteProviderProperties) {
@@ -43,12 +40,15 @@ public class RemoteHttpEsealClientBean {
       throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, IOException,
           CertificateException {
     // socket config
-    SocketConfig socketCfg = SocketConfig.custom().setSoTimeout(SOCKET_TIMEOUT).build();
+    SocketConfig socketCfg =
+        SocketConfig.custom()
+            .setSoTimeout(this.remoteProviderProperties.getSocketConnectTimeout())
+            .build();
 
     RequestConfig reqCfg =
         RequestConfig.custom()
-            .setConnectTimeout(CONNECTION_TIMEOUT)
-            .setConnectionRequestTimeout(CONNECTION_REQUEST_TIMEOUT)
+            .setConnectTimeout(this.remoteProviderProperties.getConnectTimeout())
+            .setConnectionRequestTimeout(this.remoteProviderProperties.getRequestConnectTimeout())
             .build();
 
     // ssl context
