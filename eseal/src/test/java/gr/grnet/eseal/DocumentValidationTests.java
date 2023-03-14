@@ -4,14 +4,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.europa.esig.dss.enumerations.Indication;
+import eu.europa.esig.dss.enumerations.SubIndication;
 import eu.europa.esig.dss.service.http.commons.CommonsDataLoader;
+import eu.europa.esig.dss.simplereport.jaxb.XmlMessage;
+import eu.europa.esig.dss.ws.validation.dto.WSReportsDTO;
 import gr.grnet.eseal.dto.SignedDocument;
 import gr.grnet.eseal.dto.ValidateDocumentRequestDto;
 import gr.grnet.eseal.exception.APIError;
 import gr.grnet.eseal.service.ValidateDocumentService;
 import gr.grnet.eseal.validation.DocumentValidatorLOTL;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
+import java.util.stream.Collectors;
+import org.apache.pdfbox.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -36,60 +47,74 @@ class DocumentValidationTests {
 
   @Autowired DocumentValidatorLOTL documentValidatorLOTL;
 
-  //  @Test
-  //  void ValidateDocumentSuccess() throws Exception {
-  //
-  //    InputStream isSignedPDF =
-  //        DocumentValidationTests.class.getResourceAsStream(
-  //            "/validation/".concat("signed-lta-b64-pdf.txt"));
-  //
-  //    String signedLTAPDF =
-  //        new BufferedReader(new InputStreamReader(isSignedPDF, StandardCharsets.UTF_8))
-  //            .lines()
-  //            .collect(Collectors.joining("\n"));
-  //
-  //    // Valid request body but with empty bytes field
-  //    ValidateDocumentRequestDto validateDocumentRequestDto = new ValidateDocumentRequestDto();
-  //    SignedDocument signedDocument = new SignedDocument();
-  //    signedDocument.setBytes(signedLTAPDF);
-  //    signedDocument.setName("random-name");
-  //    validateDocumentRequestDto.setSignedDocument(signedDocument);
-  //
-  //    MockHttpServletResponse resp =
-  //        this.mockMvc
-  //            .perform(
-  //                post(this.validationPath)
-  //                    .content(this.objectMapper.writeValueAsBytes(validateDocumentRequestDto))
-  //                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-  //                    .accept(MediaType.APPLICATION_JSON))
-  //            .andReturn()
-  //            .getResponse();
-  //
-  //    assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK.value());
-  //
-  //    WSReportsDTO wsReportsDTO =
-  //        this.validateDocumentService.validateDocument(
-  //            validateDocumentRequestDto.getSignedDocument().getBytes(),
-  //            validateDocumentRequestDto.getSignedDocument().getName());
-  //
-  //    assertThat(wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().size()).isEqualTo(1);
-  //    assertThat(wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().get(0).getIndication())
-  //        .isEqualTo(Indication.INDETERMINATE);
-  //
-  // assertThat(wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().get(0).getSubIndication())
-  //        .isEqualTo(SubIndication.NO_CERTIFICATE_CHAIN_FOUND);
-  //    assertThat(wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().get(0).getErrors())
-  //        .isEqualTo(
-  //            Arrays.asList(
-  //                "Unable to build a certificate chain until a trusted list!",
-  //                "The result of the LTV validation process is not acceptable to continue the
-  // process!",
-  //                "The certificate chain for signature is not trusted, it does not contain a trust
-  // anchor."));
-  //    assertThat(wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().get(0).getWarnings())
-  //        .isEqualTo(Arrays.asList("The signature/seal is an INDETERMINATE AdES digital
-  // signature!"));
-  //  }
+  @Test
+  void ValidateDocumentSuccess() throws Exception {
+
+    InputStream isSignedPDF =
+        DocumentValidationTests.class.getResourceAsStream(
+            "/validation/".concat("signed-lta-b64-pdf.txt"));
+
+    String signedLTAPDF =
+        new BufferedReader(new InputStreamReader(isSignedPDF, StandardCharsets.UTF_8))
+            .lines()
+            .collect(Collectors.joining("\n"));
+
+    // Valid request body but with empty bytes field
+    ValidateDocumentRequestDto validateDocumentRequestDto = new ValidateDocumentRequestDto();
+    SignedDocument signedDocument = new SignedDocument();
+    signedDocument.setBytes(signedLTAPDF);
+    signedDocument.setName("random-name");
+    validateDocumentRequestDto.setSignedDocument(signedDocument);
+
+    MockHttpServletResponse resp =
+        this.mockMvc
+            .perform(
+                post(this.validationPath)
+                    .content(this.objectMapper.writeValueAsBytes(validateDocumentRequestDto))
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON))
+            .andReturn()
+            .getResponse();
+
+    assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK.value());
+
+    WSReportsDTO wsReportsDTO =
+        this.validateDocumentService.validateDocument(
+            validateDocumentRequestDto.getSignedDocument().getBytes(),
+            validateDocumentRequestDto.getSignedDocument().getName());
+
+    assertThat(wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().size()).isEqualTo(1);
+    assertThat(wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().get(0).getIndication())
+        .isEqualTo(Indication.INDETERMINATE);
+
+    assertThat(wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().get(0).getSubIndication())
+        .isEqualTo(SubIndication.NO_CERTIFICATE_CHAIN_FOUND);
+    List<XmlMessage> errors =
+        wsReportsDTO
+            .getSimpleReport()
+            .getSignatureOrTimestamp()
+            .get(0)
+            .getQualificationDetails()
+            .getError();
+
+    assertThat(
+        errors.size() == 1
+            && "Unable to build a certificate chain up to a trusted list!"
+                .equals(errors.get(0).getValue()));
+
+    List<XmlMessage> warnings =
+        wsReportsDTO
+            .getSimpleReport()
+            .getSignatureOrTimestamp()
+            .get(0)
+            .getQualificationDetails()
+            .getWarning();
+
+    assertThat(
+        warnings.size() == 1
+            && "The signature/seal is an INDETERMINATE AdES digital signature!"
+                .equals(warnings.get(0).getValue()));
+  }
 
   @Test
   void ValidateDocumentEmptyOrMissingBytes() throws Exception {
@@ -236,4 +261,144 @@ class DocumentValidationTests {
         .get(
             "https://www.agentschaptelecom.nl/binaries/agentschap-telecom/documenten/publicaties/2018/januari/01/digitale-statuslijst-van-vertrouwensdiensten/current-tsl.xml");
   }
+  
+  @Test
+  void ValidateDocumentEIDASUnsigned() throws Exception {
+
+    InputStream isPdf =
+        DocumentValidationTests.class.getResourceAsStream(
+            "/sample-pdfs/".concat("test_unsigned.pdf"));
+
+    byte[] bytesPdf = IOUtils.toByteArray(isPdf);
+    String base64encodedPdf = Base64.getEncoder().encodeToString(bytesPdf);
+    
+    // Valid request body but with empty bytes field
+    ValidateDocumentRequestDto validateDocumentRequestDto = new ValidateDocumentRequestDto();
+    SignedDocument signedDocument = new SignedDocument();
+    signedDocument.setBytes(base64encodedPdf);
+    signedDocument.setName("random-name");
+    validateDocumentRequestDto.setSignedDocument(signedDocument);
+
+    MockHttpServletResponse resp =
+        this.mockMvc
+            .perform(
+                post(this.validationPath)
+                    .content(this.objectMapper.writeValueAsBytes(validateDocumentRequestDto))
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON))
+            .andReturn()
+            .getResponse();
+
+    assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK.value());
+
+    WSReportsDTO wsReportsDTO =
+        this.validateDocumentService.validateDocument(
+            validateDocumentRequestDto.getSignedDocument().getBytes(),
+            validateDocumentRequestDto.getSignedDocument().getName());
+
+    assertThat(wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().size()).isEqualTo(0);
+  }  
+  
+  @Test
+  void ValidateDocumentEIDASSignedSHA1() throws Exception {
+
+    InputStream isPdf =
+        DocumentValidationTests.class.getResourceAsStream(
+            "/sample-pdfs/".concat("test_signed_SHA1.pdf"));
+
+    byte[] bytesPdf = IOUtils.toByteArray(isPdf);
+    String base64encodedPdf = Base64.getEncoder().encodeToString(bytesPdf);
+    
+    // Valid request body but with empty bytes field
+    ValidateDocumentRequestDto validateDocumentRequestDto = new ValidateDocumentRequestDto();
+    SignedDocument signedDocument = new SignedDocument();
+    signedDocument.setBytes(base64encodedPdf);
+    signedDocument.setName("random-name");
+    validateDocumentRequestDto.setSignedDocument(signedDocument);
+
+    MockHttpServletResponse resp =
+        this.mockMvc
+            .perform(
+                post(this.validationPath)
+                    .content(this.objectMapper.writeValueAsBytes(validateDocumentRequestDto))
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON))
+            .andReturn()
+            .getResponse();
+
+    assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK.value());
+
+    WSReportsDTO wsReportsDTO =
+        this.validateDocumentService.validateDocument(
+            validateDocumentRequestDto.getSignedDocument().getBytes(),
+            validateDocumentRequestDto.getSignedDocument().getName());
+
+    assertThat(wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().size()).isEqualTo(1);
+
+    assertThat(wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().get(0).getIndication())
+        .isEqualTo(Indication.INDETERMINATE);
+
+    assertThat(wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().get(0).getSubIndication())
+        .isEqualTo(SubIndication.CRYPTO_CONSTRAINTS_FAILURE_NO_POE);
+
+    List<XmlMessage> warnings =
+        wsReportsDTO
+            .getSimpleReport()
+            .getSignatureOrTimestamp()
+            .get(0)
+            .getQualificationDetails()
+            .getWarning();
+
+    assertThat(
+        warnings.size() == 1
+            && "The signature/seal is an INDETERMINATE AdES digital signature!"
+                .equals(warnings.get(0).getValue()));
+  }  
+  
+  @Test
+  void ValidateDocumentESealed() throws Exception {
+
+    InputStream isPdf =
+        DocumentValidationTests.class.getResourceAsStream(
+            "/sample-pdfs/".concat("test_receipt_esealed.pdf"));
+
+    byte[] bytesPdf = IOUtils.toByteArray(isPdf);
+    String base64encodedPdf = Base64.getEncoder().encodeToString(bytesPdf);
+    
+    // Valid request body but with empty bytes field
+    ValidateDocumentRequestDto validateDocumentRequestDto = new ValidateDocumentRequestDto();
+    SignedDocument signedDocument = new SignedDocument();
+    signedDocument.setBytes(base64encodedPdf);
+    signedDocument.setName("random-name");
+    validateDocumentRequestDto.setSignedDocument(signedDocument);
+
+    MockHttpServletResponse resp =
+        this.mockMvc
+            .perform(
+                post(this.validationPath)
+                    .content(this.objectMapper.writeValueAsBytes(validateDocumentRequestDto))
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON))
+            .andReturn()
+            .getResponse();
+
+    assertThat(resp.getStatus()).isEqualTo(HttpStatus.OK.value());
+
+    WSReportsDTO wsReportsDTO =
+        this.validateDocumentService.validateDocument(
+            validateDocumentRequestDto.getSignedDocument().getBytes(),
+            validateDocumentRequestDto.getSignedDocument().getName());
+
+    // DSS version 5.9: adESValidationDetails will contain errors including : 
+    // The algorithm RSA with key size 2048 is no longer considered reliable for revocation data signature (ASCCM_AR_ANS_AKSNR)
+    // while DSS version 5.11 will not
+    assertThat(wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().size()).isEqualTo(1);
+
+    assertThat(wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().get(0).getIndication())
+        .isEqualTo(Indication.INDETERMINATE);
+
+    List<XmlMessage> errors = wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().get(0).getAdESValidationDetails().getError();
+    List<XmlMessage> filteredErrors = errors.stream().filter(x -> x.getKey().equals("ASCCM_AR_ANS_AKSNR")).collect(Collectors.toList());
+    assertThat(filteredErrors.size() > 0);    
+  }    
 }

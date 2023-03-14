@@ -13,4 +13,11 @@
                 <skipTests>true</skipTests>
             </properties>
         </action>
+        <action>
+            <actionName>CUSTOM-spotless:apply</actionName>
+            <displayName>spotless:apply</displayName>
+            <goals>
+                <goal>spotless:apply</goal>
+            </goals>
+        </action>
     </actions>
