@@ -1,6 +1,7 @@
 package gr.grnet.eseal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -249,6 +250,8 @@ class DocumentValidationTests {
         .onlineLOTLDataLoader()
         .get("https://ec.europa.eu/tools/lotl/eu-lotl.xml");
     CommonsDataLoader r = this.documentValidatorLOTL.onlineLOTLDataLoader();
+    
+    // note that this will fail if run with Java < 1.8.0_261 e.g. this test passes with AdoptOpenJDK jdk8u362-b09
     r.setSslProtocol("TLSv1.3");
     r.get("https://ssi.gouv.fr/uploads/tl-fr.xml");
     //
@@ -261,7 +264,7 @@ class DocumentValidationTests {
         .get(
             "https://www.agentschaptelecom.nl/binaries/agentschap-telecom/documenten/publicaties/2018/januari/01/digitale-statuslijst-van-vertrouwensdiensten/current-tsl.xml");
   }
-  
+
   @Test
   void ValidateDocumentEIDASUnsigned() throws Exception {
 
@@ -271,7 +274,7 @@ class DocumentValidationTests {
 
     byte[] bytesPdf = IOUtils.toByteArray(isPdf);
     String base64encodedPdf = Base64.getEncoder().encodeToString(bytesPdf);
-    
+
     // Valid request body but with empty bytes field
     ValidateDocumentRequestDto validateDocumentRequestDto = new ValidateDocumentRequestDto();
     SignedDocument signedDocument = new SignedDocument();
@@ -297,8 +300,8 @@ class DocumentValidationTests {
             validateDocumentRequestDto.getSignedDocument().getName());
 
     assertThat(wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().size()).isEqualTo(0);
-  }  
-  
+  }
+
   @Test
   void ValidateDocumentEIDASSignedSHA1() throws Exception {
 
@@ -308,7 +311,7 @@ class DocumentValidationTests {
 
     byte[] bytesPdf = IOUtils.toByteArray(isPdf);
     String base64encodedPdf = Base64.getEncoder().encodeToString(bytesPdf);
-    
+
     // Valid request body but with empty bytes field
     ValidateDocumentRequestDto validateDocumentRequestDto = new ValidateDocumentRequestDto();
     SignedDocument signedDocument = new SignedDocument();
@@ -349,12 +352,12 @@ class DocumentValidationTests {
             .getQualificationDetails()
             .getWarning();
 
-    assertThat(
+    assertTrue(
         warnings.size() == 1
             && "The signature/seal is an INDETERMINATE AdES digital signature!"
                 .equals(warnings.get(0).getValue()));
-  }  
-  
+  }
+
   @Test
   void ValidateDocumentESealed() throws Exception {
 
@@ -364,7 +367,7 @@ class DocumentValidationTests {
 
     byte[] bytesPdf = IOUtils.toByteArray(isPdf);
     String base64encodedPdf = Base64.getEncoder().encodeToString(bytesPdf);
-    
+
     // Valid request body but with empty bytes field
     ValidateDocumentRequestDto validateDocumentRequestDto = new ValidateDocumentRequestDto();
     SignedDocument signedDocument = new SignedDocument();
@@ -389,16 +392,28 @@ class DocumentValidationTests {
             validateDocumentRequestDto.getSignedDocument().getBytes(),
             validateDocumentRequestDto.getSignedDocument().getName());
 
-    // DSS version 5.9: adESValidationDetails will contain errors including : 
-    // The algorithm RSA with key size 2048 is no longer considered reliable for revocation data signature (ASCCM_AR_ANS_AKSNR)
+    // DSS version 5.9: adESValidationDetails will contain errors including :
+    // The algorithm RSA with key size 2048 is no longer considered reliable for revocation data
+    // signature (ASCCM_AR_ANS_AKSNR)
     // while DSS version 5.11 will not
     assertThat(wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().size()).isEqualTo(1);
 
     assertThat(wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().get(0).getIndication())
         .isEqualTo(Indication.INDETERMINATE);
 
-    List<XmlMessage> errors = wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().get(0).getAdESValidationDetails().getError();
-    List<XmlMessage> filteredErrors = errors.stream().filter(x -> x.getKey().equals("ASCCM_AR_ANS_AKSNR")).collect(Collectors.toList());
-    assertThat(filteredErrors.size() > 0);    
-  }    
+    List<XmlMessage> errors =
+        wsReportsDTO
+            .getSimpleReport()
+            .getSignatureOrTimestamp()
+            .get(0)
+            .getAdESValidationDetails()
+            .getError();
+    List<XmlMessage> filteredErrors =
+        errors.stream()
+            .filter(x -> x.getKey().equals("ASCCM_AR_ANS_AKSNR"))
+            .collect(Collectors.toList());
+    assertTrue(filteredErrors.size() == 0);
+
+    assertTrue(wsReportsDTO.getSimpleReport().getValidSignaturesCount() == 1);
+  }
 }
