@@ -123,9 +123,9 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
         commonCertificateVerifier.setAlertOnNoRevocationAfterBestSignatureTime(
             new LogOnStatusAlert());
         commonCertificateVerifier.setAlertOnExpiredSignature(new ExceptionOnStatusAlert());
-        
+
         // since DSS 5.11 it is required to set the factory, instead of the strategy
-        // in order to circumvent concurrency issues 
+        // in order to circumvent concurrency issues
         // https://dss.nowina.lu/doc/dss-documentation.html#certificateVerifier
         commonCertificateVerifier.setRevocationDataLoadingStrategyFactory(
             new CRLFirstRevocationDataLoadingStrategyFactory());
