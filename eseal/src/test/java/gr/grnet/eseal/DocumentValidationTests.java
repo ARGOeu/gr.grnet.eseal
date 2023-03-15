@@ -250,8 +250,9 @@ class DocumentValidationTests {
         .onlineLOTLDataLoader()
         .get("https://ec.europa.eu/tools/lotl/eu-lotl.xml");
     CommonsDataLoader r = this.documentValidatorLOTL.onlineLOTLDataLoader();
-    
-    // note that this will fail if run with Java < 1.8.0_261 e.g. this test passes with AdoptOpenJDK jdk8u362-b09
+
+    // note that this will fail if run with Java < 1.8.0_261 e.g. this test passes with AdoptOpenJDK
+    // jdk8u362-b09
     r.setSslProtocol("TLSv1.3");
     r.get("https://ssi.gouv.fr/uploads/tl-fr.xml");
     //
@@ -399,20 +400,11 @@ class DocumentValidationTests {
     assertThat(wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().size()).isEqualTo(1);
 
     assertThat(wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().get(0).getIndication())
-        .isEqualTo(Indication.INDETERMINATE);
+        .isEqualTo(Indication.TOTAL_PASSED);
 
-    List<XmlMessage> errors =
-        wsReportsDTO
-            .getSimpleReport()
-            .getSignatureOrTimestamp()
-            .get(0)
-            .getAdESValidationDetails()
-            .getError();
-    List<XmlMessage> filteredErrors =
-        errors.stream()
-            .filter(x -> x.getKey().equals("ASCCM_AR_ANS_AKSNR"))
-            .collect(Collectors.toList());
-    assertTrue(filteredErrors.size() == 0);
+    assertTrue(
+        wsReportsDTO.getSimpleReport().getSignatureOrTimestamp().get(0).getAdESValidationDetails()
+            == null);
 
     assertTrue(wsReportsDTO.getSimpleReport().getValidSignaturesCount() == 1);
   }

@@ -16,7 +16,7 @@
     </description>
     <properties>
         <java.version>1.8</java.version>
-        <dss.version>5.9</dss.version>
+        <dss.version>5.11.1</dss.version>
     </properties>
     <dependencies>
         <dependency>
@@ -139,6 +139,7 @@
     </dependencies>
 
     <!-- Repository for the dss module -->
+    <!-- dedicated repositories are no longer necessary for DSS 5.11.1 and higher as they are not being released in Maven Central
     <repositories>
         <repository>
             <id>cefdigital</id>
@@ -146,7 +147,7 @@
             <url>https://ec.europa.eu/cefdigital/artifact/content/repositories/esignaturedss/</url>
         </repository>
     </repositories>
-
+    -->
     <build>
         <plugins>
             <plugin>
