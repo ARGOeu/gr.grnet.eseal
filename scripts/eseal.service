@@ -3,8 +3,9 @@ Description=E-seal API for signing,validating and timestamping documents.
 Documentation=https://argoeu.github.io/gr.grnet.eseal/
 
 [Service]
-User=unisys
-Group=unisys
+Environment=PATH=/oracle/apps/java/jdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+User=oracle
+Group=oinstall
 WorkingDirectory=/opt/eseal
 ExecStart=/opt/eseal/eseal.jar
 SyslogIdentifier=eseal
