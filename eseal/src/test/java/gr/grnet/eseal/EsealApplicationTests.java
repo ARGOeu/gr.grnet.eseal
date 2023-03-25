@@ -100,8 +100,8 @@ class EsealApplicationTests {
 
   @Test
   void testRemoteProviderPropertiesLoad() {
-    assertThat("test.provider.com").isEqualTo(this.remoteProviderProperties.getEndpoint());
-    assertThat(true).isEqualTo(this.remoteProviderProperties.isRetryEnabled());
+    assertThat("rsign-api-dev.harica.gr").isEqualTo(this.remoteProviderProperties.getEndpoint());
+    assertThat(false).isEqualTo(this.remoteProviderProperties.isRetryEnabled());
     assertThat(3).isEqualTo(this.remoteProviderProperties.getRetryCounter());
     assertThat(5).isEqualTo(this.remoteProviderProperties.getRetryInterval());
     assertThat(5).isEqualTo(this.remoteProviderProperties.getTotpWaitForRefreshSeconds());
@@ -110,9 +110,9 @@ class EsealApplicationTests {
         .isEqualTo(this.remoteProviderProperties.getTruststoreFile());
     assertThat("providerpass").isEqualTo(this.remoteProviderProperties.getTruststorePassword());
     assertThat("JKS").isEqualTo(this.remoteProviderProperties.getTruststoreType());
-    assertThat(60).isEqualTo(this.remoteProviderProperties.getSocketConnectTimeout());
-    assertThat(60).isEqualTo(this.remoteProviderProperties.getConnectTimeout());
-    assertThat(60).isEqualTo(this.remoteProviderProperties.getRequestConnectTimeout());
+    assertThat(6000).isEqualTo(this.remoteProviderProperties.getSocketConnectTimeout());
+    assertThat(6000).isEqualTo(this.remoteProviderProperties.getConnectTimeout());
+    assertThat(6000).isEqualTo(this.remoteProviderProperties.getRequestConnectTimeout());
   }
 
   @Test
