@@ -32,12 +32,12 @@ _Results can be found_: [here](https://www.adjustice.gr/ethemis/?lang=en)
 	b. copy `eseal.jar`, `src/main/resources/logback.xml`, `scripts/eseal.conf` to `/opt/eseal` folder. The latter files are used to externalize the configuration.
 	c. optionally create `application.properties` in `/opt/eseal` folder to be able to override the default `src/main/resources/application.properties`
 3. Prepare a system user that will run the service. This user will have to have full ownership of the above folder and ability to create/modify files within it
-4. If SYSTEMD / systemctl command is used to manage the service, 
+4. If `systemd` is used to manage the service, 
     a. modify `scripts/eseal.service`, specifically 
 	    * User and Group
 		* Environment so that PATH environment variable points to the valid JDK bin folder
 	b. copy the above `eseal.service` to `/etc/systemd/system/` folder
-	c. run `systemctl daemon-reload` to refresh systemd configuration - after that use `sudo systemctl eseal start|restart|stop` commands to control the execution
+	c. run `systemctl daemon-reload` to refresh systemd configuration - after that use `sudo service eseal start|restart|stop` commands to control the execution, or `sudo systemctl start|restart|stop eseal`
 5. If service is setup using `init.d` (e.g. in Oracle Linux 6.6), use `scripts/eseal` script:
     a. modify the above `eseal` script to point to the right path for logging (`/var/log/eseal` is referenced by default and should be created if left like this)
 	b. copy `eseal` to `/etc/init.d/`
