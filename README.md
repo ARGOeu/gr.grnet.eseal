@@ -40,6 +40,8 @@ _Results can be found_: [here](https://www.adjustice.gr/ethemis/?lang=en)
 	c. run `systemctl daemon-reload` to refresh systemd configuration - after that use `sudo service eseal start|restart|stop` commands to control the execution, or `sudo systemctl start|restart|stop eseal`
 5. If service is setup using `init.d` (e.g. in Oracle Linux 6.6), use `scripts/eseal` script:
     a. modify the above `eseal` script to point to the right path for logging (`/var/log/eseal` is referenced by default and should be created if left like this)
-	b. copy `eseal` to `/etc/init.d/`
+	b. make sure there are no carriage return characters (Windows line endings) in the file
+	c. copy `eseal` to `/etc/init.d/`, run `chmod +x eseal` to make it executable
+	d. run `chkconfig --add eseal` followed by `chkconfig --level 2345 eseal on` to enable the service
 6. Make sure `eseal.jar` is marked as executable, i.e. execute `chmod +x /opt/eseal/eseal.jar` 
 7. Optionally modify `/opt/eseal/eseal.conf` to change the default port, using -Dserver.port=XXXX option (8080 is used by default)
