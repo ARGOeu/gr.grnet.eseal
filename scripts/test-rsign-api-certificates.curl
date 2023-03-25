@@ -1,0 +1,6 @@
+curl --location 'https://rsign-api-dev.harica.gr/dsa/v1/Certificates' \
+--header 'Content-Type: application/json' \
+--data '{
+	"Username": "TESTNOC1-9894",
+	"Password": "testuser1"
+}'
