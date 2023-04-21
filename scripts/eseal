@@ -10,11 +10,11 @@
 ### END INIT INFO
 
 SCRIPT=/opt/eseal/eseal.jar
-RUNAS=unisys
+RUNAS=root
 
 PIDFILE=/opt/eseal/eseal.pid
-LOGFILE=/var/log/eseal/eseal.log
-export JAVA_HOME=/opt/java/jdk1.8
+LOGFILE=/opt/eseal/log/eseal.log
+export JAVA_HOME=/usr/lib/jvm/jre-1.7.0-oracle.x86_64
 export PATH=$PATH:$JAVA_HOME/bin
 
 start() {
