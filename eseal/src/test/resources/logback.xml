@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="jsonConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <timestampPattern>yyyy-MM-dd'T'HH:mm:ss.SSS</timestampPattern>
+            <fieldNames>
+                <version>[ignore]</version>
+                <levelValue>[ignore]</levelValue>
+            </fieldNames>
+        </encoder>
+
+    </appender>
+    <root level="INFO">
+        <appender-ref ref="jsonConsoleAppender"/>
+    </root>
+
+
+    <logger name="org.apache.pdfbox" level="WARN"/>
+    <logger name="eu.europa.esig.dss.pdf" level="ERROR"/>
+
+
+
+
+</configuration>
