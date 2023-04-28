@@ -27,7 +27,6 @@ import gr.grnet.eseal.config.RemoteProviderProperties;
 import gr.grnet.eseal.config.VisibleSignatureProperties;
 import gr.grnet.eseal.dto.SignDocumentDto;
 import gr.grnet.eseal.enums.Path;
-import gr.grnet.eseal.enums.TSASourceEnum;
 import gr.grnet.eseal.enums.VisibleSignaturePosition;
 import gr.grnet.eseal.exception.InternalServerErrorException;
 import gr.grnet.eseal.logging.ServiceLogField;
@@ -39,10 +38,16 @@ import java.security.MessageDigest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service(value = "remoteSignDocumentServicePKCS1")
 public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
+
+  @Autowired private TrustedCertSourcesBean trustedCertSourcesBean;
+  
+  @Value("${eseal.manual.truststore.enabled:false}")
+  private boolean trustedCertSourcesBeanEnabled;
 
   private static final Logger LOGGER =
       LoggerFactory.getLogger(RemoteSignDocumentServicePKCS1.class);
@@ -94,8 +99,13 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
         }
 
         CommonCertificateVerifier commonCertificateVerifier = new CommonCertificateVerifier();
-        commonCertificateVerifier.setCheckRevocationForUntrustedChains(true);
-        commonCertificateVerifier.setAlertOnMissingRevocationData(new ExceptionOnStatusAlert());
+        commonCertificateVerifier.setCheckRevocationForUntrustedChains(
+            true); // has to be true because otherwise DSS will not attempt to check revocations for
+        // untrusted certificates at all, even when this is required
+
+        if (trustedCertSourcesBeanEnabled) {
+           commonCertificateVerifier.addTrustedCertSources(trustedCertSourcesBean.getSource());
+        }
 
         // CRLSource
         OnlineCRLSource onlineCRLSource = new OnlineCRLSource();
@@ -131,7 +141,7 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
             new CRLFirstRevocationDataLoadingStrategyFactory());
 
         PAdESService padesService = new PAdESService(commonCertificateVerifier);
-        padesService.setTspSource(tsaSourceRegistry.getTSASource(TSASourceEnum.HARICA));
+        padesService.setTspSource(tsaSourceRegistry.getCompositeTSASource());
 
         DSSDocument toBeSignedDocument =
             new InMemoryDocument(Utils.fromBase64(signDocumentDto.getBytes()));

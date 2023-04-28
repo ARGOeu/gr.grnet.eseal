@@ -7,10 +7,13 @@ import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.service.SecureRandomNonceSource;
 import eu.europa.esig.dss.service.http.commons.TimestampDataLoader;
 import eu.europa.esig.dss.service.tsp.OnlineTSPSource;
+import eu.europa.esig.dss.spi.x509.tsp.CompositeTSPSource;
 import eu.europa.esig.dss.spi.x509.tsp.TSPSource;
 import gr.grnet.eseal.enums.TSASourceEnum;
 import gr.grnet.eseal.logging.ServiceLogField;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,23 +25,48 @@ public class TSASourceRegistry {
 
   public TSASourceRegistry(TSASourcePropertiesFactory tspSourcePropertiesFactory) {
 
-    this.tsaSources = new HashMap<TSASourceEnum, TSPSource>();
+    this.tsaSources = new LinkedHashMap<TSASourceEnum, TSPSource>();
 
+    // do first run to add the primary TSA sources first
     for (TSASourceEnum tsaSourceEnum : TSASourceEnum.values()) {
 
       TSASourceProperties tspSourceProperties =
           tspSourcePropertiesFactory.getTSASourceProperties(tsaSourceEnum);
-
-      LOGGER.info(
-          "Initializing " + tsaSourceEnum.name() + " TSA . . .",
-          f(ServiceLogField.builder().build()));
-
-      this.tsaSources.put(tsaSourceEnum, createTSPSource(tspSourceProperties));
+      if (tspSourceProperties.isPrimary()) {
+        addTSPSourceToTSASources(tsaSourceEnum, tspSourceProperties);
+      }
     }
+
+    // do second run to add the rest of TSA sources
+    for (TSASourceEnum tsaSourceEnum : TSASourceEnum.values()) {
+
+      TSASourceProperties tspSourceProperties =
+          tspSourcePropertiesFactory.getTSASourceProperties(tsaSourceEnum);
+      if (!tspSourceProperties.isPrimary()) {
+        addTSPSourceToTSASources(tsaSourceEnum, tspSourceProperties);
+      }
+    }
+  }
+
+  public void addTSPSourceToTSASources(
+      TSASourceEnum tsaSourceEnum, TSASourceProperties tspSourceProperties) {
+    LOGGER.info(
+        "Initializing " + tsaSourceEnum.name() + " TSA . . .",
+        f(ServiceLogField.builder().build()));
+
+    this.tsaSources.put(tsaSourceEnum, createTSPSource(tspSourceProperties));
   }
 
   public TSPSource getTSASource(TSASourceEnum tsaSourceEnum) {
     return this.tsaSources.get(tsaSourceEnum);
+  }
+
+  public TSPSource getCompositeTSASource() {
+    CompositeTSPSource compositeSource = new CompositeTSPSource();
+    compositeSource.setTspSources(
+        tsaSources.entrySet().stream()
+            .collect(Collectors.toMap(e -> e.getKey().name(), e -> e.getValue())));
+    return compositeSource;
   }
 
   private TSPSource createTSPSource(TSASourceProperties tspSourceProperties) {

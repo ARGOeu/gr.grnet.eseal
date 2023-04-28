@@ -6,11 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * HARICA and APED properties differ in the fact that HARICA ones use basic authentication the order
+ * in which they will be used should be defined by "primary" attribute
+ */
 @Configuration
 public class TSASourceRegistryBean {
 
   private HaricaTSASourceProperties haricaTSASourceProperties;
-
   private ApedTSASourceProperties apedTSASourceProperties;
 
   @Autowired

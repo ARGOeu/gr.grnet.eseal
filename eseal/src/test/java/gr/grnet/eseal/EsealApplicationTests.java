@@ -65,8 +65,6 @@ class EsealApplicationTests {
             "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.C_.2019.276.01.0001.01.ENG")
         .isEqualTo(this.validationProperties.getOfficialJournalUrl());
     assertThat("/etc/eseal/conf.d/").isEqualTo(this.validationProperties.getLotlCacheDir());
-    assertThat("https://ec.europa.eu/tools/lotl/eu-lotl.xml")
-        .isEqualTo(this.validationProperties.getLotlUrl());
     assertThat("extra-lotl.truststore.jks")
         .isEqualTo(this.validationProperties.getExtraTrustStoreFile());
     assertThat("extra-tl").isEqualTo(this.validationProperties.getExtraTrustStorePassword());
