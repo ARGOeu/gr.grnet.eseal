@@ -25,8 +25,8 @@ import org.springframework.test.web.servlet.MockMvc;
 /**
  * These tests are written as an example - they should not be a part of normal build process and
  * should be run explicitly on demand - note that specific username and password should get
- * requested from HARICA in order for these tests to run properly
- * HARICA service is designed in a way that locks the account on 5 consecutive wrong passwords
+ * requested from HARICA in order for these tests to run properly HARICA service is designed in a
+ * way that locks the account on 5 consecutive wrong passwords
  *
  * @author ZhukovA
  */

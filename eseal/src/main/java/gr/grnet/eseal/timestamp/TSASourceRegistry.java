@@ -63,9 +63,18 @@ public class TSASourceRegistry {
 
   public TSPSource getCompositeTSASource() {
     CompositeTSPSource compositeSource = new CompositeTSPSource();
+
+    // need to keep the order of the items in the returned Map
+    // so that primary TSA is used first
     compositeSource.setTspSources(
         tsaSources.entrySet().stream()
-            .collect(Collectors.toMap(e -> e.getKey().name(), e -> e.getValue())));
+            .collect(
+                Collectors.toMap(
+                    e -> e.getKey().name(),
+                    e -> e.getValue(),
+                    (o1, o2) -> o1,
+                    LinkedHashMap::new)));
+
     return compositeSource;
   }
 
