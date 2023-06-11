@@ -28,4 +28,7 @@ class TSASourceProperties {
     /** TSA truststore password */
     private String password;
   }
+
+  /** indicates if this TSA should be used as primary source for timestamping */
+  private boolean primary = false;
 }

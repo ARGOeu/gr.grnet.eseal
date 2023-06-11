@@ -140,18 +140,22 @@
 
     <profiles>
        <profile>
-          <id>default</id>
+          <id>production</id>
           <activation>
              <activeByDefault>true</activeByDefault>
           </activation>
           <properties>
-             <remote-provider-host>rsign-api.harica.gr</remote-provider-host>
+             <remote.provider.host>rsign-api.harica.gr</remote.provider.host>
+             <retry.enabled>true</retry.enabled>
+             <server.port>8080</server.port>
           </properties>
        </profile>
        <profile>
-          <id>harica-test-server</id>
+          <id>development</id>
           <properties>
-             <remote-provider-host>rsign-api-dev.harica.gr</remote-provider-host>
+             <remote.provider.host>rsign-api-dev.harica.gr</remote.provider.host>
+             <retry.enabled>false</retry.enabled>
+             <server.port>9001</server.port>
           </properties>
        </profile>
     </profiles>

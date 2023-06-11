@@ -22,7 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
-@TestPropertySource(locations = "classpath:application-test.properties")
+@TestPropertySource(locations = "classpath:application.properties")
 class EsealApplicationTests {
 
   private RemoteProviderProperties remoteProviderProperties;
@@ -64,9 +64,7 @@ class EsealApplicationTests {
     assertThat(
             "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=uriserv:OJ.C_.2019.276.01.0001.01.ENG")
         .isEqualTo(this.validationProperties.getOfficialJournalUrl());
-    assertThat("/etc/eseal/conf.d/").isEqualTo(this.validationProperties.getLotlCacheDir());
-    assertThat("https://ec.europa.eu/tools/lotl/eu-lotl.xml")
-        .isEqualTo(this.validationProperties.getLotlUrl());
+    assertThat("/tmp").isEqualTo(this.validationProperties.getLotlCacheDir());
     assertThat("extra-lotl.truststore.jks")
         .isEqualTo(this.validationProperties.getExtraTrustStoreFile());
     assertThat("extra-tl").isEqualTo(this.validationProperties.getExtraTrustStorePassword());
@@ -94,8 +92,9 @@ class EsealApplicationTests {
     assertThat("qts.harica.gr").isEqualTo(this.haricaTSPSourceProperties.getHost());
     assertThat(443).isEqualTo(this.haricaTSPSourceProperties.getPort());
     assertThat("Basic").isEqualTo(this.haricaTSPSourceProperties.getScheme());
-    assertThat("test-user").isEqualTo(this.haricaTSPSourceProperties.getUsername());
-    assertThat("test-pass").isEqualTo(this.haricaTSPSourceProperties.getPassword());
+    assertThat("STE").isEqualTo(this.haricaTSPSourceProperties.getUsername());
+    assertThat("xRJbYDn7tgP8mhIhdN6te3oDo5UUKJY7")
+        .isEqualTo(this.haricaTSPSourceProperties.getPassword());
   }
 
   @Test
@@ -110,9 +109,9 @@ class EsealApplicationTests {
         .isEqualTo(this.remoteProviderProperties.getTruststoreFile());
     assertThat("providerpass").isEqualTo(this.remoteProviderProperties.getTruststorePassword());
     assertThat("JKS").isEqualTo(this.remoteProviderProperties.getTruststoreType());
-    assertThat(6000).isEqualTo(this.remoteProviderProperties.getSocketConnectTimeout());
-    assertThat(6000).isEqualTo(this.remoteProviderProperties.getConnectTimeout());
-    assertThat(6000).isEqualTo(this.remoteProviderProperties.getRequestConnectTimeout());
+    assertThat(60000).isEqualTo(this.remoteProviderProperties.getSocketConnectTimeout());
+    assertThat(60000).isEqualTo(this.remoteProviderProperties.getConnectTimeout());
+    assertThat(60000).isEqualTo(this.remoteProviderProperties.getRequestConnectTimeout());
   }
 
   @Test

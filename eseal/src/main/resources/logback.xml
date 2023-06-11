@@ -19,7 +19,4 @@
     <logger name="org.apache.pdfbox" level="WARN"/>
     <logger name="eu.europa.esig.dss.pdf" level="ERROR"/>
 
-
-
-
 </configuration>
