@@ -19,15 +19,17 @@ import eu.europa.esig.dss.service.crl.OnlineCRLSource;
 import eu.europa.esig.dss.service.http.commons.CommonsDataLoader;
 import eu.europa.esig.dss.service.http.commons.OCSPDataLoader;
 import eu.europa.esig.dss.service.ocsp.OnlineOCSPSource;
+import eu.europa.esig.dss.spi.x509.CertificateSource;
+import eu.europa.esig.dss.spi.x509.ListCertificateSource;
 import eu.europa.esig.dss.spi.x509.aia.DefaultAIASource;
 import eu.europa.esig.dss.utils.Utils;
-import eu.europa.esig.dss.validation.CRLFirstRevocationDataLoadingStrategy;
+import eu.europa.esig.dss.validation.CRLFirstRevocationDataLoadingStrategyFactory;
 import eu.europa.esig.dss.validation.CommonCertificateVerifier;
+import gr.grnet.eseal.config.DocumentValidatorLOTLBean;
 import gr.grnet.eseal.config.RemoteProviderProperties;
 import gr.grnet.eseal.config.VisibleSignatureProperties;
 import gr.grnet.eseal.dto.SignDocumentDto;
 import gr.grnet.eseal.enums.Path;
-import gr.grnet.eseal.enums.TSASourceEnum;
 import gr.grnet.eseal.enums.VisibleSignaturePosition;
 import gr.grnet.eseal.exception.InternalServerErrorException;
 import gr.grnet.eseal.logging.ServiceLogField;
@@ -39,10 +41,18 @@ import java.security.MessageDigest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service(value = "remoteSignDocumentServicePKCS1")
 public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
+
+  @Autowired private TrustedCertSourcesBean trustedCertSourcesBean;
+
+  @Autowired private DocumentValidatorLOTLBean lotlBean;
+
+  @Value("${eseal.manual.truststore.enabled:false}")
+  private boolean trustedCertSourcesBeanEnabled;
 
   private static final Logger LOGGER =
       LoggerFactory.getLogger(RemoteSignDocumentServicePKCS1.class);
@@ -93,14 +103,33 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
           padesSignatureParameters.setImageParameters(signatureImageParameters);
         }
 
-        CommonCertificateVerifier commonCertificateVerifier = new CommonCertificateVerifier();
-        commonCertificateVerifier.setCheckRevocationForUntrustedChains(true);
-        commonCertificateVerifier.setAlertOnMissingRevocationData(new ExceptionOnStatusAlert());
+        CommonCertificateVerifier certVerifier = new CommonCertificateVerifier();
+
+        // has to be true because otherwise DSS will not attempt to check revocations for
+        // untrusted certificates at all, even when this is required
+        // eg. while extending signatures and will always fail in the next step
+        certVerifier.setCheckRevocationForUntrustedChains(true);
+
+        // the below step was tried out in a scenario where some TSA certifiates didn't have
+        // AIA information included and DSS tried to build full certificate chain for them
+        // but since for the particular scenario the certificate was also included in LOTL
+        // we get around that problem by including LOTL list as trusted source too
+        if (trustedCertSourcesBeanEnabled) {
+          certVerifier.addTrustedCertSources(trustedCertSourcesBean.getSource());
+        }
+
+        // include LOTL as trusted source so that DSS doesn't fail when full cert chain
+        // cannot be built due to missing AIA / OCSP info
+        ListCertificateSource lotl =
+            lotlBean.getLotlValidator().getCertificateVerifier().getTrustedCertSources();
+        CertificateSource[] lotlAsArray =
+            lotl.getSources().stream().toArray(CertificateSource[]::new);
+        certVerifier.addTrustedCertSources(lotlAsArray);
 
         // CRLSource
         OnlineCRLSource onlineCRLSource = new OnlineCRLSource();
         onlineCRLSource.setDataLoader(this.commonsDataLoaderWithCustomTimeouts());
-        commonCertificateVerifier.setCrlSource(onlineCRLSource);
+        certVerifier.setCrlSource(onlineCRLSource);
 
         // OCSPSource
         OnlineOCSPSource onlineOCSPSource = new OnlineOCSPSource();
@@ -110,24 +139,26 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
         ocspDataLoader.setTimeoutConnectionRequest(
             this.remoteProviderProperties.getRequestConnectTimeout());
         onlineOCSPSource.setDataLoader(ocspDataLoader);
-        commonCertificateVerifier.setOcspSource(onlineOCSPSource);
+        certVerifier.setOcspSource(onlineOCSPSource);
 
         // AIA Source
-        commonCertificateVerifier.setAIASource(
-            new DefaultAIASource(this.commonsDataLoaderWithCustomTimeouts()));
+        certVerifier.setAIASource(new DefaultAIASource(this.commonsDataLoaderWithCustomTimeouts()));
 
-        commonCertificateVerifier.setAlertOnMissingRevocationData(new ExceptionOnStatusAlert());
-        commonCertificateVerifier.setAlertOnUncoveredPOE(new LogOnStatusAlert());
-        commonCertificateVerifier.setAlertOnRevokedCertificate(new ExceptionOnStatusAlert());
-        commonCertificateVerifier.setAlertOnInvalidTimestamp(new ExceptionOnStatusAlert());
-        commonCertificateVerifier.setAlertOnNoRevocationAfterBestSignatureTime(
-            new LogOnStatusAlert());
-        commonCertificateVerifier.setAlertOnExpiredSignature(new ExceptionOnStatusAlert());
-        commonCertificateVerifier.setRevocationDataLoadingStrategy(
-            new CRLFirstRevocationDataLoadingStrategy());
+        certVerifier.setAlertOnMissingRevocationData(new ExceptionOnStatusAlert());
+        certVerifier.setAlertOnUncoveredPOE(new LogOnStatusAlert());
+        certVerifier.setAlertOnRevokedCertificate(new ExceptionOnStatusAlert());
+        certVerifier.setAlertOnInvalidTimestamp(new ExceptionOnStatusAlert());
+        certVerifier.setAlertOnNoRevocationAfterBestSignatureTime(new LogOnStatusAlert());
+        certVerifier.setAlertOnExpiredSignature(new ExceptionOnStatusAlert());
 
-        PAdESService padesService = new PAdESService(commonCertificateVerifier);
-        padesService.setTspSource(tsaSourceRegistry.getTSASource(TSASourceEnum.HARICA));
+        // since DSS 5.11 it is required to set the factory, instead of the strategy
+        // in order to circumvent concurrency issues
+        // https://dss.nowina.lu/doc/dss-documentation.html#certificateVerifier
+        certVerifier.setRevocationDataLoadingStrategyFactory(
+            new CRLFirstRevocationDataLoadingStrategyFactory());
+
+        PAdESService padesService = new PAdESService(certVerifier);
+        padesService.setTspSource(tsaSourceRegistry.getCompositeTSASource());
 
         DSSDocument toBeSignedDocument =
             new InMemoryDocument(Utils.fromBase64(signDocumentDto.getBytes()));
@@ -194,10 +225,9 @@ public class RemoteSignDocumentServicePKCS1 implements SignDocumentService {
 
   private CommonsDataLoader commonsDataLoaderWithCustomTimeouts() {
     CommonsDataLoader cdl = new CommonsDataLoader();
-    cdl.setTimeoutConnection(this.remoteProviderProperties.getConnectTimeout() * 1000);
-    cdl.setTimeoutSocket(this.remoteProviderProperties.getSocketConnectTimeout() * 10000);
-    cdl.setTimeoutConnectionRequest(
-        this.remoteProviderProperties.getRequestConnectTimeout() * 1000);
+    cdl.setTimeoutConnection(this.remoteProviderProperties.getConnectTimeout());
+    cdl.setTimeoutSocket(this.remoteProviderProperties.getSocketConnectTimeout());
+    cdl.setTimeoutConnectionRequest(this.remoteProviderProperties.getRequestConnectTimeout());
     return cdl;
   }
 }

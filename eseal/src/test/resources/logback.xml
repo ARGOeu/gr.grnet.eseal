@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true">
+   <appender name="jsonConsoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder>
+         <pattern>%d{yyyy-MM-dd} | %d{HH:mm:ss.SSS} | %-10.10thread | %5p | %logger{30} | %m%n</pattern>
+      </encoder>
+
+   </appender>
+   <root level="debug">
+      <appender-ref ref="jsonConsoleAppender"/>
+   </root>
+</configuration>

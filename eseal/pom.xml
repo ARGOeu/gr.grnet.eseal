@@ -16,7 +16,7 @@
     </description>
     <properties>
         <java.version>1.8</java.version>
-        <dss.version>5.9</dss.version>
+        <dss.version>5.11.1</dss.version>
     </properties>
     <dependencies>
         <dependency>
@@ -67,14 +67,14 @@
             <version>3.0</version>
         </dependency>
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
             <version>6.0.13.Final</version>
         </dependency>
 
         <!-- Verify validation annotations usage at compile time -->
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator-annotation-processor</artifactId>
             <version>6.0.13.Final</version>
         </dependency>
@@ -138,15 +138,28 @@
 
     </dependencies>
 
-    <!-- Repository for the dss module -->
-    <repositories>
-        <repository>
-            <id>cefdigital</id>
-            <name>cefdigital</name>
-            <url>https://ec.europa.eu/cefdigital/artifact/content/repositories/esignaturedss/</url>
-        </repository>
-    </repositories>
-
+    <profiles>
+       <profile>
+          <id>production</id>
+          <activation>
+             <activeByDefault>true</activeByDefault>
+          </activation>
+          <properties>
+             <remote.provider.host>rsign-api.harica.gr</remote.provider.host>
+             <retry.enabled>true</retry.enabled>
+             <server.port>8080</server.port>
+          </properties>
+       </profile>
+       <profile>
+          <id>development</id>
+          <properties>
+             <remote.provider.host>rsign-api-dev.harica.gr</remote.provider.host>
+             <retry.enabled>false</retry.enabled>
+             <server.port>9001</server.port>
+          </properties>
+       </profile>
+    </profiles>
+    
     <build>
         <plugins>
             <plugin>
@@ -214,8 +227,35 @@
                     </execution>
                 </executions>
             </plugin>
-
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <foo>bar</foo>
+                </configuration>
+            </plugin>
+        
         </plugins>
+        
+        <resources>
+           <resource>
+              <directory>src/main/resources</directory>
+              <filtering>true</filtering>
+              <includes>
+                 <include>application.properties</include>
+              </includes>
+           </resource>
+           <resource>
+              <directory>src/main/resources</directory>
+              <filtering>false</filtering>
+              <excludes>
+                 <exclude>application.properties</exclude>
+              </excludes>
+           </resource>	         		
+        </resources>
+        
     </build>
 
 </project>
