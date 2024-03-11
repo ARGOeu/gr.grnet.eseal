@@ -36,7 +36,7 @@ In order to communicate with E-Signature Rest API the following postman componen
 Into Postman Environment, you can find the variables which are important in order to communicate with the API of GRNET.
 
 The following variables are predefined and should not be changed.
-
+```
 		{
 			"key": "base_url",
 			"value": "eseal.devel.einfra.grnet.gr",
@@ -52,10 +52,10 @@ The following variables are predefined and should not be changed.
 			"value": "https",
 			"enabled": true
 		}
-
+```
 
 The `username`, `password` and `key` will be provided by GRNET.
-
+```
 		{
 			"key": "username",
 			"value": "",
@@ -71,13 +71,13 @@ The `username`, `password` and `key` will be provided by GRNET.
 			"value": "",
 			"enabled": true
 		}
-
+```
 #### Postman Collection
 
 Into Postman Collection, you can find the variables which are important in order to execute requests on API.
 
 The following variables are predefined and should not be changed.
-
+```
 		{
 			"key": "signing_path",
 			"value": "api/v1/signing"
@@ -102,9 +102,9 @@ The following variables are predefined and should not be changed.
 			"key": "timestamp_endpoint",
 			"value": "remoteTimestampDocument"
 		}
-
+```
 The following variables are empty and should be filled in appropriately.
-
+```
 		{
 			"key": "pdf_base64_to_sign",
 			"value": ""
@@ -117,9 +117,9 @@ The following variables are empty and should be filled in appropriately.
 			"key": "pdf_base64_to_timestamp",
 			"value": ""
 		}
-
+```
 The following variables are optional and has already been predefined. These variables can be changed freely.
-
+```
 		{
 			"key": "pdf_name_to_sign",
 			"value": "to_sign.pdf"
@@ -132,7 +132,7 @@ The following variables are optional and has already been predefined. These vari
 			"key": "pdf_name_to_timestamp",
 			"value": "to_timestamp.pdf"
 		}
-
+```
 Finally , you can find the following 3 POST requests : 
 
 1. [_PDF Signing_](signing.md#post---sign-a-pdf-document-detached)
